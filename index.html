@@ -1,0 +1,4856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRYPTO Business Social Club - Gestión de Plano y CRM</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <style>
+    :root {
+      --bg-dark: #08090c;
+      --panel-bg: rgba(22, 25, 34, 0.85);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --panel-border-glow: rgba(243, 186, 47, 0.25);
+      --accent: #f3ba2f;
+      --neon-amber: #ffb703;
+      --neon-green: #06d6a0;
+      --neon-red: #ef476f;
+      --neon-purple: #a855f7;
+      --neon-blue: #3b82f6;
+      --text-main: #f8fafc;
+      --text-low: #64748b;
+      --font-display: 'Orbitron', 'Plus Jakarta Sans', sans-serif;
+
+      /* Glow premium para estados de mesas (glassmorphism) */
+      --glow-green: rgba(6, 214, 160, 0.5);
+      --glow-amber: rgba(255, 183, 3, 0.55);
+      --glow-red: rgba(239, 71, 111, 0.6);
+      --glow-purple: rgba(168, 85, 247, 0.45);
+    }
+
+    @keyframes neonLinePulse {
+      0%, 100% { opacity: 0.55; filter: brightness(1); }
+      50% { opacity: 1; filter: brightness(1.6); }
+    }
+
+    @keyframes floorLightsDrift {
+      0%   { background-position: 12% 18%, 88% 78%, 50% 92%, 30% 60%; }
+      50%  { background-position: 46% 56%, 54% 34%, 70% 52%, 66% 22%; }
+      100% { background-position: 78% 30%, 22% 62%, 30% 82%, 12% 74%; }
+    }
+
+    @keyframes glowTextPulse {
+      0%, 100% { text-shadow: 0 0 6px rgba(243, 186, 47, 0.35); }
+      50% { text-shadow: 0 0 14px rgba(243, 186, 47, 0.7); }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 64px;
+      background: linear-gradient(180deg, rgba(10, 12, 17, 0.96) 0%, rgba(8, 9, 12, 0.98) 100%);
+      border-bottom: 1px solid rgba(243, 186, 47, 0.14);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 22px;
+      gap: 22px;
+      z-index: 10;
+      position: relative;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) rgba(255, 255, 255, 0.06);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+    }
+
+    header::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    header::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    header::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, var(--neon-amber), var(--neon-green));
+      border-radius: 3px;
+    }
+
+    .brand-logo, .nav-tabs, .controls {
+      flex-shrink: 0;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-amber) 20%, var(--neon-green) 50%, var(--neon-purple) 80%, transparent);
+      background-size: 200% 100%;
+      animation: neonLinePulse 3.5s ease-in-out infinite, neonLineSweep 9s linear infinite, headerHueCycle 10s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes headerHueCycle {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+    @keyframes neonLineSweep {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+
+    header.hidden-elements {
+      display: none;
+    }
+
+    .nav-tabs, .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .controls {
+      margin-left: auto;
+    }
+
+    .tab-btn, .btn {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      padding: 9px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn:hover, .btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(243, 186, 47, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .tab-btn:active, .btn:active {
+      transform: translateY(0) scale(0.96);
+      transition: transform 0.08s ease;
+    }
+
+    .tab-btn.active, .btn.primary {
+      background: linear-gradient(135deg, #f3ba2f 0%, #d99a1a 100%);
+      color: #0c0d10;
+      border-color: var(--accent);
+      box-shadow: 0 0 14px rgba(243, 186, 47, 0.22);
+      font-weight: 700;
+    }
+
+    /* REDISEÑO MODO OPERACIÓN - ALTO CONTRASTE NEÓN */
+    #btn-clean-mode {
+      background: linear-gradient(135deg, #06d6a0 0%, #059669 100%) !important;
+      color: #000000 !important;
+      font-weight: 800 !important;
+      border: 1px solid #06d6a0 !important;
+      box-shadow: 0 0 16px rgba(6, 214, 160, 0.6), inset 0 0 8px rgba(255, 255, 255, 0.4) !important;
+      animation: pulseNeon 2s infinite alternate;
+    }
+
+    @keyframes pulseNeon {
+      0% { box-shadow: 0 0 10px rgba(6, 214, 160, 0.5); }
+      100% { box-shadow: 0 0 22px rgba(6, 214, 160, 0.9), 0 0 30px rgba(6, 214, 160, 0.4); }
+    }
+
+    .btn.preset-btn {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: var(--neon-purple);
+      color: #e9d5ff;
+    }
+
+    .btn.preset-btn:hover {
+      background: rgba(168, 85, 247, 0.3);
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+    }
+
+    .floor-toggle {
+      display: flex;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 8px;
+      padding: 2px;
+      border: 1px solid var(--panel-border);
+    }
+
+    .floor-toggle button {
+      background: transparent;
+      border: none;
+      color: var(--text-low);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 11px;
+      min-width: 30px;
+      transition: all 0.2s ease;
+    }
+
+    .floor-toggle button.active {
+      background: var(--accent);
+      color: #000000;
+      box-shadow: 0 2px 8px rgba(243, 186, 47, 0.3);
+    }
+
+    input[type="date"], input[type="text"], input[type="number"], textarea, select {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--panel-border);
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      outline: none;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--panel-border-glow);
+    }
+
+    #app-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 64px);
+      position: relative;
+    }
+
+    #app-container.full-height {
+      height: 100vh;
+    }
+
+    sidebar {
+      width: 230px;
+      background: linear-gradient(180deg, rgba(14, 16, 22, 0.92) 0%, rgba(10, 11, 15, 0.96) 100%);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    sidebar.hidden {
+      display: none;
+    }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .pal-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 2px solid rgba(243, 186, 47, 0.35);
+      border-radius: 8px;
+      padding: 12px 8px;
+      text-align: center;
+      font-size: 10.5px;
+      letter-spacing: 0.3px;
+      cursor: grab;
+      font-weight: 600;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+      color: var(--text-main);
+    }
+
+    .pal-item:hover {
+      background: rgba(243, 186, 47, 0.06);
+      border-color: rgba(243, 186, 47, 0.4);
+      border-left-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
+
+    sidebar > span {
+      font-family: var(--font-display);
+      letter-spacing: 1.6px;
+      color: var(--accent);
+      opacity: 0.85;
+    }
+
+    .main-view {
+      flex: 1;
+      position: relative;
+      background: #060709;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #view-plano {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ILUMINACIÓN TENUE DE ANTRO — viñeta que oscurece bordes y realza el brillo neón del centro */
+    #view-plano::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background: radial-gradient(ellipse 85% 75% at 50% 42%, transparent 50%, rgba(0, 0, 0, 0.5) 100%);
+    }
+
+    /* CANVAS Y MARCA DE AGUA INTEGRADA */
+    #canvas {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: 24px 24px;
+      overflow: hidden;
+      perspective: 1900px;
+      perspective-origin: 50% 12%;
+      cursor: grab;
+    }
+    #canvas.panning-active { cursor: grabbing; }
+
+    /* VISTA 3D — inclina el plano completo para dar sensación de profundidad real del antro */
+    #canvas-stage.stage-3d {
+      transform-style: preserve-3d;
+      transform-origin: 50% 45%; /* pivote centrado: la inclinación se ve natural, no como si girara desde una esquina */
+    }
+
+    /* Transición SOLO durante el cambio de vista (entrar/salir de 3D) — nunca durante pan/zoom en vivo, para que no se sienta "atrasado" */
+    #canvas-stage.stage-transitioning {
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #canvas.mode-3d {
+      background-image:
+        radial-gradient(ellipse 80% 55% at 50% 15%, rgba(168, 85, 247, 0.10), transparent 65%),
+        radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: auto, 24px 24px;
+    }
+
+    #canvas.mode-3d .furniture {
+      box-shadow: 0 22px 26px -10px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.03);
+      transition: box-shadow 0.4s ease;
+    }
+
+    #canvas.mode-3d .resize-handle {
+      display: none !important;
+      pointer-events: none;
+    }
+
+    #btn-toggle-3d.active-3d {
+      background: rgba(168, 85, 247, 0.22) !important;
+      border-color: var(--neon-purple) !important;
+      color: var(--neon-purple) !important;
+      box-shadow: 0 0 14px rgba(168, 85, 247, 0.4);
+    }
+
+    #btn-toggle-limit-3d.active-limit {
+      background: rgba(243, 186, 47, 0.22) !important;
+      border-color: var(--neon-amber) !important;
+      color: var(--neon-amber) !important;
+      box-shadow: 0 0 14px rgba(243, 186, 47, 0.4);
+    }
+
+    /* LÍMITE VISUAL 3D — marca en el plano 2D exactamente hasta dónde llega el piso real
+       renderizado en la Vista 3D, para no colocar mobiliario fuera del área visible */
+    #boundary-3d-indicator {
+      position: absolute;
+      left: 0; top: 0; width: 0; height: 0;
+      border: 2px dashed var(--neon-amber);
+      background: repeating-linear-gradient(135deg, rgba(243, 186, 47, 0.05) 0px, rgba(243, 186, 47, 0.05) 8px, transparent 8px, transparent 16px);
+      box-sizing: border-box;
+      pointer-events: none;
+      z-index: 0;
+      display: none;
+      border-radius: 4px;
+    }
+    #boundary-3d-indicator.visible { display: block; }
+    #boundary-3d-indicator::after {
+      content: '📐 Límite del piso 3D';
+      position: absolute;
+      top: -22px;
+      left: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--neon-amber);
+      white-space: nowrap;
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+    }
+
+    /* === VISTA 3D REAL (WebGL / Three.js) — reemplaza el hack de CSS transform === */
+    #view3d-container {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: #000;
+      display: none;
+      cursor: grab;
+      touch-action: none;
+    }
+    #view3d-container.open { display: block; }
+    #view3d-container.dragging { cursor: grabbing; }
+    #view3d-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      outline: none;
+    }
+    #view3d-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+      background: #050608;
+      z-index: 2;
+      font-family: var(--font-display);
+      color: var(--neon-green);
+      letter-spacing: 2px;
+      font-size: 13px;
+    }
+    #view3d-loading .spin3d {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 3px solid rgba(6, 214, 160, 0.18);
+      border-top-color: var(--neon-green);
+      animation: spin3d 0.9s linear infinite;
+    }
+    @keyframes spin3d { to { transform: rotate(360deg); } }
+
+    #view3d-hud {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+    }
+    #view3d-hud .badge {
+      pointer-events: auto;
+      background: rgba(10, 12, 17, 0.72);
+      border: 1px solid rgba(6, 214, 160, 0.35);
+      color: var(--text-main);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    #btn-exit-3d {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 3;
+      background: linear-gradient(135deg, #ef476f 0%, #b91c3c 100%);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 12.5px;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(239, 71, 111, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #btn-exit-3d:active { transform: scale(0.95); }
+
+    #btn-edit-mode-3d {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 3;
+      background: rgba(10, 12, 17, 0.72);
+      border: 1px solid rgba(6, 214, 160, 0.35);
+      color: var(--text-main);
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 11.5px;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+    }
+    #btn-edit-mode-3d.active-edit {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px rgba(243, 186, 47, 0.4);
+    }
+
+    #btn-toggle-3d-controls {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      z-index: 4;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(10, 12, 17, 0.72);
+      border: 1px solid rgba(6, 214, 160, 0.35);
+      color: var(--text-main);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #view3d-container.hide-3d-controls #view3d-hud,
+    #view3d-container.hide-3d-controls #btn-exit-3d,
+    #view3d-container.hide-3d-controls #view3d-zoom,
+    #view3d-container.hide-3d-controls #view3d-joystick,
+    #view3d-container.hide-3d-controls #btn-edit-mode-3d {
+      display: none !important;
+    }
+
+    #view3d-zoom {
+      position: absolute;
+      bottom: 20px;
+      right: 16px;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #view3d-zoom button {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: rgba(10, 12, 17, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--accent);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+    }
+    #view3d-zoom button:active { transform: scale(0.92); }
+
+    /* Joystick táctil para "caminar" por el antro — pensado para tableta */
+    #view3d-joystick {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 3;
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      background: rgba(10, 12, 17, 0.55);
+      border: 1px solid rgba(6, 214, 160, 0.35);
+      backdrop-filter: blur(8px);
+      touch-action: none;
+    }
+    #view3d-joystick-knob {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 40px; height: 40px;
+      margin: -20px 0 0 -20px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #06d6a0, #059669);
+      box-shadow: 0 0 14px rgba(6, 214, 160, 0.7);
+      transition: transform 0.05s linear;
+      pointer-events: none;
+    }
+    @media (min-width: 900px) {
+      #view3d-joystick { display: none; } /* en PC se usa teclado WASD / flechas */
+    }
+
+    /* Marca de agua central eliminada a propósito: era el bloque claro/blanco
+       que quedaba flotando justo en el centro del plano y tapaba el piso.
+       La identidad de marca ya vive en el header, así que el plano queda limpio. */
+
+    /* LUCES DE ANTRO EN MOVIMIENTO SOBRE EL PLANO (respeta la cuadrícula de puntos) */
+    #canvas::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+      mix-blend-mode: screen;
+      background-repeat: no-repeat;
+      background-image:
+        radial-gradient(circle 320px, rgba(243, 186, 47, 0.16), transparent 70%),
+        radial-gradient(circle 280px, rgba(6, 214, 160, 0.14), transparent 70%),
+        radial-gradient(circle 260px, rgba(168, 85, 247, 0.14), transparent 70%),
+        radial-gradient(circle 240px, rgba(0, 242, 254, 0.1), transparent 70%);
+      background-position: 12% 18%, 88% 78%, 50% 92%, 30% 60%;
+      animation: floorLightsDrift 24s ease-in-out infinite alternate;
+    }
+
+#canvas-stage {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-origin: 0 0;
+  z-index: 1;
+  will-change: transform;
+  touch-action: none;
+}
+
+/* CUADRÍCULA DE PRECISIÓN — visible solo cuando el snap está activo, para armar mesas simétricas */
+#canvas-stage.grid-visible::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0px, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 2%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0px, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 2%);
+}
+
+/* PISO ESTILO CLUB: rejilla neón en diamante que da sensación isométrica sin romper el drag 2D */
+#canvas-stage::before {
+  content: '';
+  position: absolute;
+  inset: -3000px;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(60deg, rgba(6, 214, 160, 0.055) 0px, rgba(6, 214, 160, 0.055) 1px, transparent 1px, transparent 64px),
+    repeating-linear-gradient(-60deg, rgba(243, 186, 47, 0.05) 0px, rgba(243, 186, 47, 0.05) 1px, transparent 1px, transparent 64px),
+    radial-gradient(ellipse 70% 45% at 50% 45%, rgba(255, 255, 255, 0.05), transparent 65%);
+}
+
+    /* CONTROLES DE ZOOM TÁCTILES PARA TABLET (movible) */
+    .zoom-controls {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 50;
+      background: rgba(12, 15, 23, 0.92);
+      border: 1px solid var(--accent);
+      padding: 8px;
+      border-radius: 14px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px var(--panel-border-glow);
+      touch-action: none;
+    }
+
+    .zoom-drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 18px;
+      color: var(--text-low);
+      font-size: 13px;
+      letter-spacing: 3px;
+      cursor: grab;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .zoom-drag-handle:hover {
+      color: var(--accent);
+      background: rgba(243, 186, 47, 0.08);
+    }
+
+    .zoom-drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .btn-zoom {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--panel-border);
+      color: #ffffff;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn-zoom:hover, .btn-zoom:active {
+      background: var(--accent);
+      color: #000000;
+      border-color: var(--accent);
+      box-shadow: 0 0 14px var(--panel-border-glow);
+    }
+
+    .btn-zoom-reset {
+      font-size: 10px !important;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .furniture {
+      position: absolute;
+      background: rgba(22, 26, 36, 0.97);
+      border: 2px solid #3b4354;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: move;
+      touch-action: none;
+      text-align: center;
+      box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.4), 5px 8px 0 rgba(0, 0, 0, 0.28), 7px 12px 12px rgba(0, 0, 0, 0.5);
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.15s ease, transform 0.15s ease;
+      will-change: transform;
+      backface-visibility: hidden;
+      contain: layout style;
+    }
+
+    .furniture.mesa {
+      background: linear-gradient(160deg, #f2f6fa 0%, #cdd8e2 55%, #9db0c2 100%);
+      border: 2px solid var(--neon-green);
+      border-radius: 14px;
+      box-shadow:
+        0 0 6px rgba(6, 214, 160, 0.35),
+        3px 4px 0 rgba(5, 58, 44, 0.9),
+        5px 8px 0 rgba(4, 40, 31, 0.85),
+        7px 13px 14px rgba(0, 0, 0, 0.6);
+    }
+
+    .furniture.mesa.est-disponible .title-txt,
+    .furniture.mesa.est-disponible .sub-txt {
+      color: #0c1117;
+    }
+    .furniture.mesa.est-disponible .sub-txt { opacity: 0.75; }
+
+    .furniture.mesa::before, .furniture.mesa::after {
+      content: '';
+      position: absolute;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+      border-radius: 3px;
+    }
+    .furniture.mesa::before { top: -6px; left: 15%; width: 70%; height: 3px; }
+    .furniture.mesa::after { bottom: -6px; left: 15%; width: 70%; height: 3px; }
+
+    .furniture.mesa.mesa-unida {
+      border: 2px solid var(--accent);
+      background: linear-gradient(160deg, #f7e6b8 0%, #d9b559 55%, #a9812f 100%);
+      box-shadow:
+        0 0 8px rgba(243, 186, 47, 0.5),
+        3px 4px 0 rgba(64, 46, 4, 0.9),
+        5px 8px 0 rgba(46, 32, 2, 0.85),
+        7px 13px 14px rgba(0, 0, 0, 0.6);
+      animation: none;
+    }
+    .furniture.mesa.mesa-unida .title-txt,
+    .furniture.mesa.mesa-unida .sub-txt {
+      color: #241a02;
+    }
+    .furniture.mesa.mesa-unida::before,
+    .furniture.mesa.mesa-unida::after {
+      background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.25), transparent);
+    }
+    .furniture.mesa.mesa-unida .divider-3d {
+      position: absolute;
+      top: 12%;
+      bottom: 12%;
+      left: 50%;
+      width: 2px;
+      background: rgba(0, 0, 0, 0.3);
+      box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2);
+      pointer-events: none;
+    }
+
+    /* SILLÓN — lounge VIP con capitoné y neón bajo el asiento */
+    .furniture.sillon {
+      background:
+        radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1.6px, transparent 1.6px) 0 0 / 16px 16px,
+        radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1.6px, transparent 1.6px) 8px 8px / 16px 16px,
+        linear-gradient(150deg, #414d66 0%, #262d3d 55%, #14171f 100%);
+      border: 1.5px solid var(--neon-purple);
+      border-radius: 28px 28px 12px 12px / 34px 34px 10px 10px;
+      box-shadow:
+        0 0 14px var(--glow-purple),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -12px 16px rgba(0, 0, 0, 0.4),
+        3px 4px 0 rgba(12, 8, 20, 0.9),
+        5px 8px 0 rgba(8, 5, 14, 0.85),
+        7px 12px 16px rgba(0, 0, 0, 0.6);
+      position: absolute;
+      overflow: visible;
+    }
+
+    .furniture.sillon::after {
+      content: '';
+      position: absolute;
+      left: 12%; right: 12%; bottom: -6px; height: 5px;
+      background: var(--neon-purple);
+      filter: blur(5px);
+      opacity: 0.75;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    .furniture.sillon.color-rojo {
+      border: 1.5px solid var(--neon-red);
+      background:
+        radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1.6px, transparent 1.6px) 0 0 / 16px 16px,
+        radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1.6px, transparent 1.6px) 8px 8px / 16px 16px,
+        linear-gradient(150deg, #7a2c3f 0%, #47141f 55%, #240a0f 100%);
+      box-shadow:
+        0 0 14px var(--glow-red),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -12px 16px rgba(0, 0, 0, 0.4),
+        3px 4px 0 rgba(30, 5, 10, 0.9),
+        5px 8px 0 rgba(20, 3, 7, 0.85),
+        7px 12px 16px rgba(0, 0, 0, 0.6);
+    }
+    .furniture.sillon.color-rojo::after {
+      background: var(--neon-red);
+    }
+
+    .furniture.dj {
+      background: linear-gradient(160deg, #29354a 0%, #131b2c 60%, #0a0f1a 100%);
+      border: 2px solid var(--neon-blue);
+      border-radius: 12px;
+      box-shadow:
+        0 0 8px rgba(59, 130, 246, 0.4),
+        3px 4px 0 rgba(6, 10, 20, 0.9),
+        5px 8px 0 rgba(4, 7, 14, 0.85),
+        7px 12px 14px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      animation: djLightsCycle 6s linear infinite;
+    }
+
+    .furniture.dj::before {
+      content: '';
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      bottom: 8%;
+      height: 34%;
+      background-image: repeating-linear-gradient(90deg, currentColor 0px, currentColor 3px, transparent 3px, transparent 8px);
+      opacity: 0.55;
+      -webkit-mask-image: linear-gradient(0deg, black 20%, transparent 100%);
+      mask-image: linear-gradient(0deg, black 20%, transparent 100%);
+      animation: eqBars 1.1s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes eqBars {
+      0%   { transform: scaleY(0.4); }
+      100% { transform: scaleY(1); }
+    }
+
+    @keyframes djLightsCycle {
+      0%   { border-color: var(--neon-blue);   color: var(--neon-blue);   box-shadow: 0 0 18px rgba(59, 130, 246, 0.55), inset 0 0 12px rgba(59, 130, 246, 0.25), 3px 4px 0 rgba(6, 10, 20, 0.9), 5px 8px 0 rgba(4, 7, 14, 0.85), 7px 12px 14px rgba(0, 0, 0, 0.6); }
+      25%  { border-color: var(--neon-purple); color: var(--neon-purple); box-shadow: 0 0 18px rgba(168, 85, 247, 0.55), inset 0 0 12px rgba(168, 85, 247, 0.25), 3px 4px 0 rgba(6, 10, 20, 0.9), 5px 8px 0 rgba(4, 7, 14, 0.85), 7px 12px 14px rgba(0, 0, 0, 0.6); }
+      50%  { border-color: var(--neon-red);    color: var(--neon-red);    box-shadow: 0 0 18px rgba(239, 71, 111, 0.55), inset 0 0 12px rgba(239, 71, 111, 0.25), 3px 4px 0 rgba(6, 10, 20, 0.9), 5px 8px 0 rgba(4, 7, 14, 0.85), 7px 12px 14px rgba(0, 0, 0, 0.6); }
+      75%  { border-color: var(--neon-green);  color: var(--neon-green);  box-shadow: 0 0 18px rgba(6, 214, 160, 0.55), inset 0 0 12px rgba(6, 214, 160, 0.25), 3px 4px 0 rgba(6, 10, 20, 0.9), 5px 8px 0 rgba(4, 7, 14, 0.85), 7px 12px 14px rgba(0, 0, 0, 0.6); }
+      100% { border-color: var(--neon-blue);   color: var(--neon-blue);   box-shadow: 0 0 18px rgba(59, 130, 246, 0.55), inset 0 0 12px rgba(59, 130, 246, 0.25), 3px 4px 0 rgba(6, 10, 20, 0.9), 5px 8px 0 rgba(4, 7, 14, 0.85), 7px 12px 14px rgba(0, 0, 0, 0.6); }
+    }
+
+    .furniture.barra {
+      background: linear-gradient(90deg, #1e1b18 0%, #3a3022 50%, #1e1b18 100%);
+      border: 2px solid #f59e0b;
+      border-top: 4px solid #fbbf24;
+      border-radius: 8px;
+      box-shadow:
+        0 0 16px rgba(245, 158, 11, 0.3),
+        3px 4px 0 rgba(40, 28, 4, 0.9),
+        5px 8px 0 rgba(28, 20, 2, 0.85),
+        7px 12px 14px rgba(0, 0, 0, 0.6);
+    }
+
+    /* BOCINA — rejilla de altavoz + ondas de sonido pulsando al ritmo */
+    .furniture.bocina {
+      background: radial-gradient(circle at 45% 40%, #1c2536 0%, #0d1119 60%, #05070c 100%);
+      border: 2px solid #00f2fe;
+      border-radius: 10px;
+      box-shadow:
+        0 0 14px rgba(0, 242, 254, 0.45),
+        inset 0 0 0 5px rgba(0, 242, 254, 0.07),
+        inset 0 0 18px rgba(0, 242, 254, 0.16),
+        3px 4px 0 rgba(3, 30, 34, 0.9),
+        5px 8px 0 rgba(2, 20, 23, 0.85),
+        6px 10px 12px rgba(0, 0, 0, 0.6);
+      overflow: visible;
+    }
+
+    .furniture.bocina::before {
+      content: '';
+      position: absolute;
+      inset: 16%;
+      border-radius: 50%;
+      background-image: radial-gradient(circle, rgba(0, 242, 254, 0.4) 1px, transparent 1.5px);
+      background-size: 7px 7px;
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    .furniture.bocina::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 12px;
+      border: 2px solid rgba(0, 242, 254, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      animation: bocinaPulseRing 1.7s ease-out infinite;
+    }
+
+    @keyframes bocinaPulseRing {
+      0%   { opacity: 0.7; transform: scale(1); }
+      75%  { opacity: 0; transform: scale(1.35); }
+      100% { opacity: 0; transform: scale(1.4); }
+    }
+
+    .furniture.selected {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 22px rgba(243, 186, 47, 0.8) !important;
+    }
+
+    .furniture.multi-selected {
+      border-color: var(--neon-amber) !important;
+      box-shadow: 0 0 16px rgba(255, 183, 3, 0.6) !important;
+    }
+
+    .furniture.locked {
+      border-style: dashed;
+      opacity: 0.85;
+    }
+
+    .furniture.dragging {
+      opacity: 0.92;
+      z-index: 30;
+      box-shadow:
+        0 26px 20px rgba(0, 0, 0, 0.35),
+        0 40px 40px rgba(0, 0, 0, 0.4),
+        0 0 0 2px rgba(255, 255, 255, 0.18) !important;
+      transition: box-shadow 0.12s ease, opacity 0.12s ease;
+    }
+
+    .furniture.est-disponible {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 14px var(--glow-green), inset 0 0 8px rgba(6, 214, 160, 0.15);
+    }
+
+    .furniture.est-reservada {
+      border-color: var(--neon-amber);
+      background: rgba(61, 46, 5, 0.92);
+      box-shadow: 0 0 16px var(--glow-amber), inset 0 0 9px rgba(255, 183, 3, 0.2);
+      animation: pulseAmberGlow 2.4s ease-in-out infinite;
+    }
+
+    .furniture.est-ocupada {
+      border-color: var(--neon-red);
+      background: rgba(61, 14, 24, 0.92);
+      box-shadow: 0 0 18px var(--glow-red), inset 0 0 10px rgba(239, 71, 111, 0.25);
+      animation: pulseRedGlow 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulseAmberGlow {
+      0%, 100% { box-shadow: 0 0 10px var(--glow-amber), inset 0 0 6px rgba(255, 183, 3, 0.15); }
+      50% { box-shadow: 0 0 20px var(--glow-amber), inset 0 0 10px rgba(255, 183, 3, 0.3); }
+    }
+
+    @keyframes pulseRedGlow {
+      0%, 100% { box-shadow: 0 0 12px var(--glow-red), inset 0 0 7px rgba(239, 71, 111, 0.2); }
+      50% { box-shadow: 0 0 24px var(--glow-red), inset 0 0 12px rgba(239, 71, 111, 0.4); }
+    }
+
+    .furniture .pax {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--accent);
+      color: #000000;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      z-index: 2;
+    }
+
+    .furniture .title-txt {
+      font-size: 11px;
+      word-break: break-word;
+      padding: 2px;
+      line-height: 1.2;
+      transition: transform 0.2s ease;
+    }
+
+    .furniture .sub-txt {
+      font-size: 9px;
+      color: var(--text-low);
+      margin-top: 2px;
+    }
+
+    .resize-handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      border: 1px solid #000;
+      z-index: 5;
+    }
+
+    .resize-handle.nw { top: -5px; left: -5px; cursor: nwse-resize; }
+    .resize-handle.ne { top: -5px; right: -5px; cursor: nesw-resize; }
+    .resize-handle.sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+    .resize-handle.se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+
+    #waiters-panel {
+      width: 250px;
+      background: linear-gradient(180deg, rgba(14, 16, 22, 0.92) 0%, rgba(10, 11, 15, 0.96) 100%);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      padding: 18px 14px;
+      overflow-y: auto;
+    }
+
+    #waiters-panel.hidden {
+      display: none;
+    }
+
+    .waiter-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 2px solid rgba(168, 85, 247, 0.4);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+    }
+
+    .waiter-card:hover {
+      border-left-color: var(--neon-purple);
+    }
+
+    .waiter-card-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .waiter-tables {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .table-badge {
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 600;
+    }
+
+    .table-badge.res {
+      border-color: var(--neon-amber);
+      color: var(--neon-amber);
+    }
+
+    .table-badge.ocu {
+      border-color: var(--neon-red);
+      color: var(--neon-red);
+    }
+
+    #multi-tools {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(22, 25, 34, 0.95);
+      border: 1px solid var(--accent);
+      padding: 10px 22px;
+      border-radius: 40px;
+      display: none;
+      align-items: center;
+      gap: 16px;
+      z-index: 20;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.8);
+      backdrop-filter: blur(12px);
+    }
+
+    #multi-tools.active {
+      display: flex;
+    }
+
+    /* REDISEÑO FLOTANTE MODO OPERACIÓN */
+    #floating-clean-toggle {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+      z-index: 40;
+    }
+
+    #floating-clean-toggle.visible {
+      display: block;
+    }
+
+    .clean-btn-exit {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      pointer-events: auto;
+    }
+
+    #btn-exit-clean {
+      background: linear-gradient(135deg, #ef476f 0%, #d90429 100%) !important;
+      color: #ffffff !important;
+      border-color: var(--neon-red) !important;
+      box-shadow: 0 0 16px rgba(239, 71, 111, 0.6) !important;
+      font-weight: 800;
+    }
+
+    .clean-floor-toggle {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: auto;
+      background: rgba(12, 15, 23, 0.92);
+      padding: 4px;
+      border-radius: 14px;
+      border: 1px solid var(--neon-green);
+      box-shadow: 0 0 20px rgba(6, 214, 160, 0.3);
+    }
+
+    .clean-controls-eye {
+      position: absolute;
+      bottom: 18px;
+      left: 18px;
+      pointer-events: auto;
+      z-index: 61;
+    }
+
+    #btn-toggle-floating-controls {
+      border-radius: 50%;
+      opacity: 0.55;
+    }
+
+    #btn-toggle-floating-controls:hover, #btn-toggle-floating-controls.active-hidden {
+      opacity: 1;
+    }
+
+    .clean-btn-exit, .clean-floor-toggle, .zoom-controls {
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    #app-container.hide-floating-controls .clean-btn-exit,
+    #app-container.hide-floating-controls .clean-floor-toggle,
+    #app-container.hide-floating-controls .zoom-controls {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+    }
+
+    #view-crm {
+      display: none;
+      flex: 1;
+      padding: 28px;
+      overflow-y: auto;
+      background: var(--bg-dark);
+    }
+
+    #view-crm.active {
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 14px;
+      font-size: 13px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--panel-border);
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--accent);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(243, 186, 47, 0.3);
+    }
+
+    tbody tr {
+      transition: background 0.15s ease;
+    }
+
+    tbody tr:hover td {
+      background: rgba(243, 186, 47, 0.06);
+    }
+
+    td {
+      background: rgba(18, 20, 28, 0.6);
+    }
+
+    .crm-edit-btn, .crm-delete-btn {
+      padding: 6px 10px;
+      font-size: 11px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: opacity 0.2s;
+    }
+
+    .crm-edit-btn {
+      background: var(--accent);
+      color: #000000;
+    }
+
+    .crm-delete-btn {
+      background: var(--neon-red);
+      color: #ffffff;
+      margin-left: 4px;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.16s ease, visibility 0s linear 0.16s;
+      will-change: opacity;
+    }
+
+    .overlay.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.16s ease;
+    }
+
+    .modal {
+      background: rgba(22, 25, 34, 0.82);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-top: 1px solid rgba(243, 186, 47, 0.5);
+      border-radius: 20px;
+      width: 480px;
+      max-width: 92%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 30px rgba(243, 186, 47, 0.12);
+      animation: modalIn 0.2s ease-out;
+      position: relative;
+      will-change: transform, opacity;
+    }
+
+    /* Brillo del modal animado por OPACIDAD (barato para el navegador) en vez de recalcular el blur
+       del box-shadow en cada frame — se ve igual de vivo pero sin trabar el resto de la app */
+    .modal::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 22px;
+      box-shadow: 0 0 42px rgba(243, 186, 47, 0.35);
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: -1;
+      animation: modalGlow 4s ease-in-out infinite;
+    }
+
+    @keyframes modalGlow {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.75; }
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    h3 {
+      font-family: var(--font-display);
+      letter-spacing: 0.4px;
+    }
+
+    .modal h3 {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 10px;
+      animation: glowTextPulse 3s ease-in-out infinite;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .estado-selector {
+      display: flex;
+      gap: 8px;
+    }
+
+    .estado-btn {
+      flex: 1;
+      padding: 10px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      color: #ffffff;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+
+    .estado-btn.sel-disponible {
+      border-color: var(--neon-green);
+      background: rgba(6, 214, 160, 0.15);
+      color: var(--neon-green);
+    }
+
+    .estado-btn.sel-reservada {
+      border-color: var(--neon-amber);
+      background: rgba(255, 183, 3, 0.15);
+      color: var(--neon-amber);
+    }
+
+    .estado-btn.sel-ocupada {
+      border-color: var(--neon-red);
+      background: rgba(239, 71, 111, 0.15);
+      color: var(--neon-red);
+    }
+
+    /* CHIPS DE MESERO — selección rápida con un toque */
+    .mesero-quick-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .mesero-chip {
+      padding: 6px 10px;
+      font-size: 10.5px;
+      background: rgba(168, 85, 247, 0.08);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: var(--text-main);
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .mesero-chip:hover {
+      background: rgba(168, 85, 247, 0.18);
+      border-color: var(--neon-purple);
+      transform: translateY(-1px);
+    }
+
+    .mesero-chip:active {
+      transform: translateY(0) scale(0.94);
+      transition: transform 0.08s ease;
+    }
+
+    .mesero-chip.sel-mesero {
+      background: rgba(168, 85, 247, 0.28);
+      border-color: var(--neon-purple);
+      color: var(--neon-purple);
+      box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+    }
+
+    #btn-edit-mode.locked {
+      background: rgba(239, 71, 111, 0.15) !important;
+      border-color: var(--neon-red) !important;
+      color: var(--neon-red) !important;
+    }
+
+    .color-btn {
+      flex: 1;
+      padding: 10px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      color: #ffffff;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+
+    .color-btn.sel-gris {
+      border-color: #94a3b8;
+      background: rgba(148, 163, 184, 0.18);
+      color: #cbd5e1;
+    }
+
+    .color-btn.sel-rojo {
+      border-color: var(--neon-red);
+      background: rgba(239, 71, 111, 0.18);
+      color: var(--neon-red);
+    }
+
+    /* Búsqueda y Autocompletado con Lupa */
+    .search-box-container {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search-results-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(15, 18, 25, 0.98);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      margin-top: 4px;
+    }
+
+    .search-results-dropdown.visible {
+      display: block;
+    }
+
+    .search-res-item {
+      padding: 10px 14px;
+      font-size: 12px;
+      border-bottom: 1px solid var(--panel-border);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.15s;
+    }
+
+    .search-res-item:hover {
+      background: rgba(243, 186, 47, 0.15);
+    }
+
+    /* Filas dinámicas para Carga Masiva */
+    .batch-rows-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+
+    .batch-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1.2fr 1.5fr auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .batch-row input {
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+
+    .btn-remove-row {
+      background: rgba(239, 71, 111, 0.2);
+      border: 1px solid var(--neon-red);
+      color: var(--neon-red);
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .ghost {
+      position: fixed;
+      pointer-events: none;
+      opacity: 0.6;
+      z-index: 2000;
+      background: var(--accent);
+      border-radius: 8px;
+    }
+
+    .preset-slot {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .preset-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .preset-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: #ffffff;
+    }
+
+    .preset-status {
+      font-size: 10px;
+      color: var(--text-low);
+    }
+  </style>
+</head>
+<body>
+
+  <header id="main-header">
+    <div class="brand-logo" style="display:flex; align-items:center;">
+      <img src="logo.png" alt="CRYPTO Business Social Club" style="height: 38px; width: auto; object-fit: contain; margin-right: 8px; filter: drop-shadow(0 0 8px rgba(243, 186, 47, 0.45));">
+    </div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="tab-plano">Plano Interactivo</button>
+      <button class="tab-btn" id="tab-crm">CRM y Reservas</button>
+      <div class="floor-toggle">
+        <button id="floor-pb" class="active">PB</button>
+        <button id="floor-pa">PA</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <input type="date" id="f-fecha">
+      <button class="btn primary" id="btn-open-add-reserva">➕ Nueva Reserva</button>
+      <button class="btn preset-btn" id="btn-open-presets">✨ Plantillas</button>
+      <button class="btn" id="btn-quick-checkin">⚡ Check-in Rápido</button>
+      <button class="btn" id="btn-add-batch-res">📦 Carga Masiva</button>
+      <button class="btn" id="btn-toggle-multi">☑ Multi-Selección</button>
+      <button class="btn" id="btn-clean-mode">🧹 Modo Operación</button>
+      <button class="btn" id="btn-fullscreen">🔍 Full Screen</button>
+    </div>
+  </header>
+
+  <div id="app-container">
+    <sidebar id="sidebar-panel">
+      <span style="font-family: var(--font-display); font-size: 10px; color: var(--accent); opacity: 0.85; font-weight: 700; letter-spacing: 1.6px;">ELEMENTOS DE PLANO</span>
+      <div class="palette-grid">
+        <div class="pal-item" id="pal-mesa">Mesa</div>
+        <div class="pal-item" id="pal-mesa-doble">Mesa Doble</div>
+        <div class="pal-item" id="pal-sillon">Sillón</div>
+        <div class="pal-item" id="pal-bocina">Bocinas</div>
+        <div class="pal-item" id="pal-cristal">Cristales</div>
+        <div class="pal-item" id="pal-dj">Cabina DJ</div>
+        <div class="pal-item" id="pal-pantalla">Pantalla LED</div>
+        <div class="pal-item" id="pal-barra">Barra</div>
+        <div class="pal-item" id="pal-entrada">Entrada</div>
+        <div class="pal-item" id="pal-salida">Salida</div>
+        <div class="pal-item" id="pal-wc">Baños</div>
+        <div class="pal-item" id="pal-pasillo">Pasillo</div>
+        <div class="pal-item" id="pal-caja">Caja</div>
+        <div class="pal-item" id="pal-escaleras">Escaleras</div>
+      </div>
+
+      <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--panel-border);">
+        <span style="font-family: var(--font-display); font-size: 10px; color: var(--accent); opacity: 0.85; font-weight: 700; letter-spacing: 1.6px;">SIMETRÍA Y ORDEN</span>
+        <button class="btn" id="btn-snap-grid" style="width:100%; margin-top:10px; justify-content:flex-start;">🧲 Snap a Cuadrícula: OFF</button>
+        <p style="font-size:10px; color:var(--text-low); margin-top:6px; line-height:1.4;">Al activarlo, cada mesa que muevas se ajusta sola a una cuadrícula fija para quedar perfectamente alineada.</p>
+      </div>
+
+      <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--panel-border);">
+        <span style="font-family: var(--font-display); font-size: 10px; color: var(--accent); opacity: 0.85; font-weight: 700; letter-spacing: 1.6px;">MODO EDICIÓN</span>
+        <button class="btn" id="btn-edit-mode" style="width:100%; margin-top:10px; justify-content:flex-start;">🔓 Modo Edición: ACTIVO</button>
+        <p style="font-size:10px; color:var(--text-low); margin-top:6px; line-height:1.4;">Con el Modo Edición apagado, las mesas y elementos quedan fijos: puedes tocarlos para ver/reservar, pero no se mueven por error en la tablet. Al entrar a Modo Operación se bloquea solo.</p>
+      </div>
+
+
+      <button class="btn" id="btn-clear-day" style="margin-top:auto; background:rgba(239, 71, 111, 0.15); border-color:var(--neon-red); color:var(--neon-red);">🗑️ Vaciar Plano de Hoy</button>
+    </sidebar>
+
+    <div class="main-view">
+      <div id="view-plano">
+        <div id="canvas">
+          <div id="canvas-stage"></div>
+          
+          <!-- CONTROLES DE ZOOM TABLET (arrastrable) -->
+          <div class="zoom-controls" id="zoom-controls">
+            <div class="zoom-drag-handle" id="zoom-drag-handle" title="Arrastrar para mover">⠿</div>
+            <button class="btn-zoom" id="btn-zoom-in" title="Acercar">➕</button>
+            <button class="btn-zoom btn-zoom-reset" id="btn-zoom-reset" title="Restablecer">100%</button>
+            <button class="btn-zoom" id="btn-zoom-out" title="Alejar">➖</button>
+            <button class="btn-zoom" id="btn-toggle-3d" title="Vista 3D del antro">🧊</button>
+            <button class="btn-zoom" id="btn-toggle-limit-3d" title="Ver límite del área visible en 3D">📐</button>
+          </div>
+        </div>
+
+        <!-- VISTA 3D REAL DEL ANTRO (WebGL) -->
+        <div id="view3d-container">
+          <div id="view3d-loading"><div class="spin3d"></div>Cargando antro en 3D…</div>
+          <canvas id="view3d-canvas"></canvas>
+          <div id="view3d-hud"><span class="badge">🖱️ 1 dedo: mirar · 2 dedos: deslizarte · Rueda/pellizco: zoom · Joystick: caminar</span></div>
+          <button id="btn-exit-3d">✕ Salir de Vista 3D</button>
+          <button id="btn-edit-mode-3d" title="Activar/desactivar poder mover mesas y elementos en 3D">🔒 Edición 3D: OFF</button>
+          <button id="btn-toggle-3d-controls" title="Ocultar/Mostrar controles de la vista 3D">👁</button>
+          <div id="view3d-zoom">
+            <button id="view3d-zoom-in">➕</button>
+            <button id="view3d-zoom-out">➖</button>
+            <button id="view3d-zoom-reset">⟳</button>
+          </div>
+          <div id="view3d-joystick"><div id="view3d-joystick-knob"></div></div>
+        </div>
+      </div>
+
+      <div id="view-crm">
+        <h3 style="color: var(--accent); margin-bottom: 12px; font-weight: 800;">Reservaciones de la Jornada</h3>
+        <input type="text" id="reser-search" placeholder="Buscar por cliente, mesa o mesero..." style="margin-bottom: 14px; width: 340px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Planta</th>
+              <th>Mesa</th>
+              <th>Cliente</th>
+              <th>Teléfono</th>
+              <th>Personas</th>
+              <th>Mesero</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="reser-tbody"></tbody>
+        </table>
+        <div id="reser-empty" style="padding: 24px; color: var(--text-low); text-align: center; display:none;">No hay reservaciones encontradas.</div>
+
+        <h3 style="color: var(--accent); margin-top: 40px; margin-bottom: 12px; font-weight: 800;">Directorio Global de Clientes CRM</h3>
+        <input type="text" id="crm-search" placeholder="Buscar cliente por nombre o teléfono..." style="margin-bottom: 14px; width: 340px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre Completo</th>
+              <th>Teléfono Contacto</th>
+              <th>Total Visitas</th>
+              <th>Última Mesa</th>
+              <th>Preferencias</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="crm-tbody"></tbody>
+        </table>
+        <div id="crm-empty" style="padding: 24px; color: var(--text-low); text-align: center; display:none;">No se encontraron clientes registrados.</div>
+      </div>
+
+      <div id="multi-tools">
+        <span id="multi-count" style="font-size: 12px; font-weight: 700; color: var(--accent);">0 elementos seleccionados</span>
+        <button class="btn" id="btn-align-h" title="Alinear al mismo centro horizontal">▤ Alinear Fila</button>
+        <button class="btn" id="btn-align-v" title="Alinear al mismo centro vertical">▥ Alinear Columna</button>
+        <button class="btn" id="btn-distribute" title="Distribuir espacio uniforme entre los elementos">↔ Distribuir Parejo</button>
+        <button class="btn" id="btn-unir-mesas" style="background: rgba(243, 186, 47, 0.15); border-color: var(--accent); color: var(--accent);">🔗 Unir Mesas</button>
+        <button class="btn" id="btn-desunir-mesas" style="background: rgba(100, 116, 139, 0.15); border-color: var(--text-low); color: var(--text-main);">🔓 Desunir Mesas</button>
+        <button class="btn" id="btn-del-multi" style="background: var(--neon-red); color: #ffffff;">Eliminar Seleccionados</button>
+      </div>
+
+      <div id="floating-clean-toggle">
+        <div class="clean-btn-exit">
+          <button class="btn primary" id="btn-exit-clean">← Salir Modo Operación</button>
+        </div>
+        <div class="clean-floor-toggle">
+          <div class="floor-toggle">
+            <button id="float-floor-pb" class="active">PB</button>
+            <button id="float-floor-pa">PA</button>
+          </div>
+        </div>
+        <div class="clean-controls-eye">
+          <button class="btn-zoom" id="btn-toggle-floating-controls" title="Ocultar/Mostrar controles flotantes">👁</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="waiters-panel">
+      <span style="font-family: var(--font-display); font-size: 10px; color: var(--neon-purple); opacity: 0.9; font-weight: 700; letter-spacing: 1.6px; display: block; margin-bottom: 14px;">MESEROS Y ASIGNACIONES</span>
+      <div id="waiters-list"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Formulario para Agregar Reserva Suelta -->
+  <div class="overlay" id="overlay-single-res">
+    <div class="modal">
+      <h3>➕ Registrar Nueva Reserva</h3>
+      <div>
+        <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Nombre de la Reserva</label>
+        <input type="text" id="sr-nombre" placeholder="Ej. Juan Pérez" style="width:100%;">
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Teléfono</label>
+          <input type="text" id="sr-telefono" placeholder="+52 ..." style="width:100%;">
+        </div>
+        <div style="width:110px;">
+          <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Personas</label>
+          <input type="number" id="sr-personas" value="2" style="width:100%;">
+        </div>
+      </div>
+      <div>
+        <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Fecha de Reserva</label>
+        <input type="date" id="sr-fecha" style="width:100%;">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn" id="btn-sr-cancel">Cancelar</button>
+        <button class="btn primary" id="btn-sr-save">Guardar Reserva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Plantillas -->
+  <div class="overlay" id="overlay-presets">
+    <div class="modal" style="width: 520px;">
+      <h3>Gestor de Plantillas (Máximo 5)</h3>
+      <p style="font-size: 11px; color: var(--text-low);">Guarda configuraciones de plano frecuentes y aplícalas al día seleccionado en un clic.</p>
+      <div id="presets-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;"></div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-close-presets">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: Configuración de Elemento / Reservación -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h3 id="modal-title">Propiedades del Elemento</h3>
+      
+      <div>
+        <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Nombre o Identificador de Mesa</label>
+        <input type="text" id="f-nombre" style="width:100%;">
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Ancho (px)</label>
+          <input type="number" id="f-ancho" style="width:100%;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Alto (px)</label>
+          <input type="number" id="f-alto" style="width:100%;">
+        </div>
+      </div>
+
+      <div id="sillon-color-field" style="display:none;">
+        <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:6px; font-weight:700;">Color del Sillón</label>
+        <div class="estado-selector" id="sillon-color-selector">
+          <div class="color-btn" data-color="gris">Gris</div>
+          <div class="color-btn" data-color="rojo">Rojo</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:center; margin-top: 4px;">
+        <button class="btn" id="btn-rotate">Rotar 90°</button>
+        <span id="rotate-value" style="font-size:13px; font-weight:800; color:var(--accent);">0°</span>
+        <button class="btn" id="btn-lock" style="margin-left:auto;">🔓 Posición Libre</button>
+      </div>
+
+      <div id="reserva-fields" style="border-top: 1px solid var(--panel-border); padding-top: 14px; margin-top: 6px;">
+        
+        <!-- Búsqueda con Lupa e Integración con Reservas Registradas -->
+        <div class="search-box-container">
+          <label style="font-size: 11px; color: var(--accent); display:block; margin-bottom:4px; font-weight:700;">🔍 Buscar Reserva Registrada (Autocompletar)</label>
+          <input type="text" id="f-search-reserva" placeholder="Escribe el nombre de la reserva para autollenar..." style="width:100%;">
+          <div class="search-results-dropdown" id="search-results-dropdown"></div>
+        </div>
+
+        <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom: 8px; font-weight:700;">Estado Actual de la Mesa</label>
+        <div class="estado-selector">
+          <div class="estado-btn" data-estado="disponible">Disponible</div>
+          <div class="estado-btn" data-estado="reservada">Reservada</div>
+          <div class="estado-btn" data-estado="ocupada">Ocupada</div>
+        </div>
+
+        <div style="margin-top: 12px;">
+          <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Cliente Reservante</label>
+          <input type="text" id="f-cliente" placeholder="Nombre completo" style="width:100%;">
+        </div>
+        <div style="display:flex; gap:10px; margin-top: 10px;">
+          <div style="flex:1;">
+            <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Teléfono</label>
+            <input type="text" id="f-telefono" placeholder="+52 ..." style="width:100%;">
+          </div>
+          <div style="width:100px;">
+            <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Personas</label>
+            <input type="number" id="f-personas" placeholder="2" style="width:100%;">
+          </div>
+        </div>
+        <div style="margin-top: 10px;">
+          <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Mesero Asignado</label>
+          <input type="text" id="f-mesero" placeholder="Nombre del mesero" list="meseros-datalist" style="width:100%;">
+          <div class="mesero-quick-selector" id="mesero-quick-selector"></div>
+          <datalist id="meseros-datalist"></datalist>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn" id="btn-delete" style="background:var(--neon-red); color:#ffffff; margin-right:auto;">Eliminar</button>
+        <button class="btn" id="btn-cancel">Cancelar</button>
+        <button class="btn primary" id="btn-save">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Editar CRM -->
+  <div class="overlay" id="overlay-cli">
+    <div class="modal">
+      <h3>Editar Ficha de Cliente CRM</h3>
+      <div>
+        <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Nombre Completo</label>
+        <input type="text" id="c-nombre" style="width:100%;">
+      </div>
+      <div>
+        <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Teléfono de Contacto</label>
+        <input type="text" id="c-telefono" style="width:100%;">
+      </div>
+      <div>
+        <label style="font-size: 11px; color: var(--text-low); display:block; margin-bottom:4px; font-weight:700;">Preferencias / Consumo</label>
+        <textarea id="c-preferencias" style="width:100%; height:70px; resize:none;"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-cli-cancel">Cancelar</button>
+        <button class="btn primary" id="btn-cli-save">Actualizar Cliente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Carga Masiva (Rediseñada a Lista Interactiva por Filas) -->
+  <div class="overlay" id="overlay-batch">
+    <div class="modal" style="width: 680px;">
+      <h3>Carga Masiva de Reservaciones</h3>
+      <p style="font-size: 11px; color: var(--text-low);">
+        Agrega o edita las reservaciones en el formulario interactivo. Se registrarán automáticamente para la fecha activa.
+      </p>
+
+      <div style="display:grid; grid-template-columns: 2fr 1.5fr 1fr 1.2fr 1.5fr auto; gap:6px; font-size:10px; font-weight:800; color:var(--accent); margin-top:10px;">
+        <span>Cliente</span>
+        <span>Teléfono</span>
+        <span>Pax</span>
+        <span>Mesa</span>
+        <span>Mesero</span>
+        <span></span>
+      </div>
+
+      <div class="batch-rows-container" id="batch-rows-container"></div>
+
+      <button class="btn" id="btn-add-batch-row" style="margin-top: 10px; border-color: var(--accent); color: var(--accent);">+ Añadir otra reserva</button>
+
+      <div class="modal-actions">
+        <button class="btn" id="btn-batch-cancel">Cancelar</button>
+        <button class="btn primary" id="btn-batch-save">Procesar Reservas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Check-in Rápido -->
+  <div class="overlay" id="overlay-checkin">
+    <div class="modal" style="width: 480px;">
+      <h3>Check-in Rápido de Comensales</h3>
+      <input type="text" id="checkin-search" placeholder="Filtrar por nombre de reservación...">
+      <div id="checkin-list" style="max-height: 280px; overflow-y: auto; margin-top: 10px;"></div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-checkin-close">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const btnFs = document.getElementById('btn-fullscreen');
+  btnFs.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => console.error(err.message));
+      btnFs.textContent = '❌ Salir FullScreen';
+    } else {
+      document.exitFullscreen();
+      btnFs.textContent = '🔍 Full Screen';
+    }
+  });
+
+  const btnCleanMode = document.getElementById('btn-clean-mode');
+
+  // === MODO EDICIÓN (aplica tanto al plano 2D como a la Vista 3D) ===
+  // Por defecto empieza apagado para no mover mesas/objetos sin querer por un
+  // toque accidental en tablet; se activa a propósito con este botón (hay uno
+  // igual dentro de la vista 3D). Con Modo Edición inactivo, todo queda fijo
+  // tanto en el plano 2D como en la Vista 3D — solo se puede seleccionar/ver.
+  window.editModeActive = false;
+  const btnEditMode = document.getElementById('btn-edit-mode');
+  function syncEditModeUI() {
+    const on = !!window.editModeActive;
+    if (btnEditMode) {
+      btnEditMode.textContent = on ? '🔓 Modo Edición: ACTIVO' : '🔒 Modo Edición: INACTIVO';
+      btnEditMode.classList.toggle('locked', !on);
+    }
+    const btn3d = document.getElementById('btn-edit-mode-3d');
+    if (btn3d) {
+      btn3d.textContent = on ? '🔓 Edición 3D: ON' : '🔒 Edición 3D: OFF';
+      btn3d.classList.toggle('active-edit', on);
+    }
+  }
+  window.syncEditModeUI = syncEditModeUI;
+  if (btnEditMode) {
+    btnEditMode.addEventListener('click', () => {
+      window.editModeActive = !window.editModeActive;
+      syncEditModeUI();
+    });
+  }
+  syncEditModeUI();
+  const btnExitClean = document.getElementById('btn-exit-clean');
+  const mainHeader = document.getElementById('main-header');
+  const sidebarPanel = document.getElementById('sidebar-panel');
+  const waitersPanel = document.getElementById('waiters-panel');
+  const appContainer = document.getElementById('app-container');
+  const floatingToggle = document.getElementById('floating-clean-toggle');
+
+  function toggleCleanMode(enable) {
+    if (enable) {
+      mainHeader.classList.add('hidden-elements');
+      sidebarPanel.classList.add('hidden');
+      waitersPanel.classList.add('hidden');
+      appContainer.classList.add('full-height');
+      floatingToggle.classList.add('visible');
+    } else {
+      mainHeader.classList.remove('hidden-elements');
+      sidebarPanel.classList.remove('hidden');
+      waitersPanel.classList.remove('hidden');
+      appContainer.classList.remove('full-height');
+      floatingToggle.classList.remove('visible');
+    }
+  }
+
+  btnCleanMode.addEventListener('click', () => toggleCleanMode(true));
+  btnExitClean.addEventListener('click', () => toggleCleanMode(false));
+
+  // Nombres visibles por defecto para cada tipo de elemento del plano
+  const NOMBRES_DEFAULT = {
+    mesa: 'MESA',
+    mesa_doble: 'MESA DOBLE',
+    sillon: 'SILLÓN',
+    bocina: 'BOCINA',
+    cristal: 'CRISTALES',
+    dj: 'CABINA DJ',
+    pantalla: 'PANTALLA LED',
+    barra: 'BARRA',
+    entrada: 'ENTRADA',
+    salida: 'SALIDA',
+    wc: 'BAÑOS',
+    pasillo: 'PASILLO',
+    caja: 'CAJA',
+    escaleras: 'ESCALERAS'
+  };
+
+  // Migración de nombres antiguos -> nuevos (solo si el elemento aún tiene el nombre por defecto anterior)
+  const NOMBRES_LEGACY_MIGRACION = {
+    'SILLÓN VIP': 'SILLÓN',
+    '🔊 BOCINA': 'BOCINA',
+    'CRISTAL': 'CRISTALES',
+    'BALCÓN': 'CRISTALES',
+    'DJ': 'CABINA DJ',
+    'WC': 'BAÑOS'
+  };
+
+  // Lista de meseros del club para selección rápida con un toque (chips)
+  const MESEROS_LIST = ['Angel', 'Alex', 'Alexa', 'Brenda', 'Josue', 'Eder', 'Ozvaldo', 'Jose', 'Juan P', 'Pillo', 'Luis A', 'Ulises'];
+
+  // Pinta los chips de meseros dentro de un contenedor y los sincroniza con su input de texto asociado
+  function renderMeseroChips(containerEl, inputEl) {
+    if (!containerEl || !inputEl) return;
+    containerEl.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    MESEROS_LIST.forEach(nombre => {
+      const chip = document.createElement('div');
+      chip.className = 'mesero-chip';
+      chip.textContent = nombre;
+      if (inputEl.value.trim().toLowerCase() === nombre.toLowerCase()) chip.classList.add('sel-mesero');
+      chip.addEventListener('click', () => {
+        const yaSeleccionado = inputEl.value.trim().toLowerCase() === nombre.toLowerCase();
+        inputEl.value = yaSeleccionado ? '' : nombre;
+        containerEl.querySelectorAll('.mesero-chip').forEach(c => c.classList.remove('sel-mesero'));
+        if (!yaSeleccionado) chip.classList.add('sel-mesero');
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      frag.appendChild(chip);
+    });
+    containerEl.appendChild(frag);
+  }
+
+  (function fillMeserosDatalist() {
+    const dl = document.getElementById('meseros-datalist');
+    if (!dl) return;
+    dl.innerHTML = MESEROS_LIST.map(n => `<option value="${n}"></option>`).join('');
+  })();
+
+  window.migrarNombresLegacy = function migrarNombresLegacy() {
+    let changed = false;
+    function migrarSet(itemsArr) {
+      (itemsArr || []).forEach(it => {
+        if (it && NOMBRES_LEGACY_MIGRACION[it.nombre]) {
+          it.nombre = NOMBRES_LEGACY_MIGRACION[it.nombre];
+          changed = true;
+        }
+      });
+    }
+    Object.values(window.layoutsData || {}).forEach(day => {
+      migrarSet(day.PB);
+      migrarSet(day.PA);
+    });
+    Object.values(window.presetsData || {}).forEach(preset => {
+      migrarSet(preset.PB);
+      migrarSet(preset.PA);
+    });
+    return changed;
+  }
+
+  const STORAGE_KEY_LAYOUT = 'crypto_floor_layouts_by_date_v4';
+  const STORAGE_KEY_RESERVAS = 'crypto_floor_daily_reservas_v3';
+  const STORAGE_KEY_CLI = 'crypto_floor_clientes';
+  const STORAGE_KEY_PRESETS = 'crypto_floor_presets_v1';
+
+  window.layoutsData = JSON.parse(localStorage.getItem(STORAGE_KEY_LAYOUT) || '{}');
+  window.reservasData = JSON.parse(localStorage.getItem(STORAGE_KEY_RESERVAS) || '{}');
+  window.clientes = JSON.parse(localStorage.getItem(STORAGE_KEY_CLI) || '[]');
+  window.presetsData = JSON.parse(localStorage.getItem(STORAGE_KEY_PRESETS) || '{}');
+
+  const canvas = document.getElementById('canvas');
+  const canvasStage = document.getElementById('canvas-stage');
+
+  // La arquitectura fija del club (escenario, pantalla, DJ, mezzanine) se
+  // renderiza únicamente en la Vista 3D real con Three.js (ver Club3DEngine
+  // más abajo). El plano 2D queda limpio, sin capas fantasma superpuestas.
+
+  // Cancela el scroll nativo del navegador al arrastrar el plano (fluidez táctil en Tab A11)
+  canvasStage.addEventListener('touchmove', (e) => { e.preventDefault(); }, { passive: false });
+  const overlay = document.getElementById('overlay');
+  const overlayCli = document.getElementById('overlay-cli');
+  const overlayBatch = document.getElementById('overlay-batch');
+  const overlayCheckin = document.getElementById('overlay-checkin');
+  const overlayPresets = document.getElementById('overlay-presets');
+  const overlaySingleRes = document.getElementById('overlay-single-res');
+
+  let selectedIds = new Set();
+  let multiSelectMode = false;
+  let activeElementId = null;
+  let activeClienteId = null;
+  let selectedEstado = 'disponible';
+  let selectedColorVariante = 'gris';
+  let currentRotation = 0;
+  let isLocked = false;
+  let currentFloor = 'PB';
+
+  // SNAP A CUADRÍCULA — para simetría perfecta en eventos especiales
+  let snapToGridActive = false;
+  const GRID_STEP_PCT = 2; // paso de cuadrícula en % del canvas (ajustable)
+  const btnSnapGrid = document.getElementById('btn-snap-grid');
+  btnSnapGrid.addEventListener('click', () => {
+    snapToGridActive = !snapToGridActive;
+    btnSnapGrid.textContent = `🧲 Snap a Cuadrícula: ${snapToGridActive ? 'ON' : 'OFF'}`;
+    btnSnapGrid.style.background = snapToGridActive ? 'rgba(6, 214, 160, 0.18)' : '';
+    btnSnapGrid.style.borderColor = snapToGridActive ? 'var(--neon-green)' : '';
+    btnSnapGrid.style.color = snapToGridActive ? 'var(--neon-green)' : '';
+    canvasStage.classList.toggle('grid-visible', snapToGridActive);
+  });
+
+  // OCULTAR/MOSTRAR CONTROLES FLOTANTES — para no estorbar durante el trabajo
+  const btnToggleFloatingControls = document.getElementById('btn-toggle-floating-controls');
+  const appContainerEl = document.getElementById('app-container');
+  btnToggleFloatingControls.addEventListener('click', () => {
+    const nowHidden = appContainerEl.classList.toggle('hide-floating-controls');
+    btnToggleFloatingControls.classList.toggle('active-hidden', nowHidden);
+    btnToggleFloatingControls.textContent = nowHidden ? '👁‍🗨' : '👁';
+    btnToggleFloatingControls.title = nowHidden ? 'Mostrar controles flotantes' : 'Ocultar controles flotantes';
+  });
+
+  // LÓGICA DE ZOOM + PAN (canvas ampliado con cámara libre)
+  let currentZoom = 1.0;
+  let panX = 0;
+  let panY = 0;
+  const zoomResetBtn = document.getElementById('btn-zoom-reset');
+
+  // VISTA 3D — inclina el plano para visualizar el antro en perspectiva, no solo en plano 2D
+  let view3DActive = false;
+  const btnToggle3D = document.getElementById('btn-toggle-3d');
+  const canvasEl = document.getElementById('canvas');
+  const VIEW3D_TILT = 'rotateX(55deg) rotateZ(-45deg) scale(0.85)';
+
+  function applyStageTransform() {
+    const tilt = view3DActive ? ` ${VIEW3D_TILT}` : '';
+    canvasStage.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})${tilt}`;
+    zoomResetBtn.textContent = `${Math.round(currentZoom * 100)}%`;
+  }
+
+  function setZoom(val) {
+    currentZoom = Math.min(Math.max(0.22, val), 3);
+    applyStageTransform();
+  }
+
+  btnToggle3D.addEventListener('click', () => {
+    view3DActive = true;
+    selectedIds.clear();
+    multiSelectMode = false;
+    updateMultiBar();
+    btnToggle3D.classList.add('active-3d');
+    btnToggle3D.title = 'Vista 3D del antro (abierta)';
+    if (typeof window.open3DClub === 'function') window.open3DClub();
+  });
+
+  document.getElementById('btn-exit-3d').addEventListener('click', () => {
+    view3DActive = false;
+    btnToggle3D.classList.remove('active-3d');
+    btnToggle3D.title = 'Vista 3D del antro';
+    if (typeof window.close3DClub === 'function') window.close3DClub();
+  });
+
+  // LÍMITE VISUAL 3D — marca en el plano 2D exactamente hasta dónde llega el piso real
+  // que se ve en la Vista 3D (mismo cálculo que usa el motor WebGL para no desincronizarse).
+  let limit3DActive = false;
+  const btnToggleLimit3D = document.getElementById('btn-toggle-limit-3d');
+  const boundaryIndicator = document.createElement('div');
+  boundaryIndicator.id = 'boundary-3d-indicator';
+  canvasStage.appendChild(boundaryIndicator);
+
+  function updateBoundaryIndicator() {
+    const b = window.CLUB3D_BOUNDS || { FLOOR_W: 40, FLOOR_D: 46, FLOOR_Z_OFFSET: 4, PCT_Z_OFFSET: 6 };
+    // Inversa exacta de pctToWorld()/floor.position.z del motor 3D:
+    // worldZ = (yPct/100)*FLOOR_D - FLOOR_D/2 + PCT_Z_OFFSET  →  despejamos yPct
+    const floorZMin = b.FLOOR_Z_OFFSET - b.FLOOR_D / 2;
+    const floorZMax = b.FLOOR_Z_OFFSET + b.FLOOR_D / 2;
+    const yMinPct = ((floorZMin + b.FLOOR_D / 2 - b.PCT_Z_OFFSET) / b.FLOOR_D) * 100;
+    const yMaxPct = ((floorZMax + b.FLOOR_D / 2 - b.PCT_Z_OFFSET) / b.FLOOR_D) * 100;
+    const top = Math.max(0, yMinPct);
+    const bottom = Math.min(100, yMaxPct);
+    boundaryIndicator.style.left = '0%';
+    boundaryIndicator.style.top = top + '%';
+    boundaryIndicator.style.width = '100%';
+    boundaryIndicator.style.height = (bottom - top) + '%';
+  }
+
+  btnToggleLimit3D.addEventListener('click', () => {
+    limit3DActive = !limit3DActive;
+    btnToggleLimit3D.classList.toggle('active-limit', limit3DActive);
+    btnToggleLimit3D.title = limit3DActive ? 'Ocultar límite del área visible en 3D' : 'Ver límite del área visible en 3D';
+    if (limit3DActive) {
+      updateBoundaryIndicator();
+      boundaryIndicator.classList.add('visible');
+    } else {
+      boundaryIndicator.classList.remove('visible');
+    }
+  });
+
+  document.getElementById('btn-zoom-in').onclick = () => setZoom(currentZoom + 0.15);
+  document.getElementById('btn-zoom-out').onclick = () => setZoom(currentZoom - 0.15);
+  zoomResetBtn.onclick = () => { panX = 0; panY = 0; setZoom(1.0); };
+
+  // Zoom con rueda del ratón (mantiene el centro visual, sin romper pctPos)
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    setZoom(currentZoom + (e.deltaY < 0 ? 0.1 : -0.1));
+  }, { passive: false });
+
+  // Pan (deslizar la cámara por el plano) — simplificado: ahora basta con
+  // arrastrar con 1 dedo/clic normal sobre el fondo, sin combinaciones raras
+  // (ya no hace falta clic derecho, central ni Shift). Un "tap" corto sin
+  // apenas movimiento se sigue tratando como clic (deselecciona); en cuanto
+  // el dedo se mueve más de unos pocos px, se vuelve un pan fluido.
+  (function setupCanvasPan() {
+    const activePointers = new Map();
+    let isPanning = false;
+    let dragCommitted = false; // true en cuanto el movimiento supera el umbral de "tap"
+    let panStartX = 0, panStartY = 0;
+    let panOriginX = 0, panOriginY = 0;
+    let pinchStartDist = 0;
+    let pinchStartZoom = 1;
+    const DRAG_THRESHOLD = 4; // px — por debajo de esto, se sigue considerando un tap/clic
+
+    function dist(p1, p2) { return Math.hypot(p1.x - p2.x, p1.y - p2.y); }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      if (e.target !== canvas && e.target !== canvasStage) return;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (activePointers.size === 2) {
+        // Inicio de pinch-zoom + pan de dos dedos
+        const pts = [...activePointers.values()];
+        pinchStartDist = dist(pts[0], pts[1]);
+        pinchStartZoom = currentZoom;
+        isPanning = true;
+        dragCommitted = true;
+        panStartX = (pts[0].x + pts[1].x) / 2;
+        panStartY = (pts[0].y + pts[1].y) / 2;
+        panOriginX = panX;
+        panOriginY = panY;
+        canvas.classList.add('panning-active');
+      } else if (activePointers.size === 1) {
+        // Cualquier clic/toque simple sobre el fondo puede convertirse en pan
+        // en cuanto haya movimiento — ya no requiere clic derecho ni Shift.
+        isPanning = true;
+        dragCommitted = false;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        panOriginX = panX;
+        panOriginY = panY;
+      }
+    });
+
+    let panRafPending = false;
+
+    function schedulePanFrame() {
+      if (panRafPending) return;
+      panRafPending = true;
+      requestAnimationFrame(() => {
+        panRafPending = false;
+        applyStageTransform();
+      });
+    }
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!activePointers.has(e.pointerId)) return;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (!isPanning) return;
+
+      if (activePointers.size === 2) {
+        const pts = [...activePointers.values()];
+        const newDist = dist(pts[0], pts[1]);
+        if (pinchStartDist > 0) {
+          currentZoom = Math.min(Math.max(0.22, pinchStartZoom * (newDist / pinchStartDist)), 3);
+        }
+        const midX = (pts[0].x + pts[1].x) / 2;
+        const midY = (pts[0].y + pts[1].y) / 2;
+        panX = panOriginX + (midX - panStartX);
+        panY = panOriginY + (midY - panStartY);
+        schedulePanFrame();
+      } else if (activePointers.size === 1) {
+        const dx = e.clientX - panStartX;
+        const dy = e.clientY - panStartY;
+        if (!dragCommitted) {
+          if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+          dragCommitted = true;
+          canvas.classList.add('panning-active');
+        }
+        panX = panOriginX + dx;
+        panY = panOriginY + dy;
+        schedulePanFrame();
+      }
+    });
+
+    function endPointer(e) {
+      activePointers.delete(e.pointerId);
+      if (activePointers.size < 2) pinchStartDist = 0;
+      if (activePointers.size === 0) {
+        isPanning = false;
+        dragCommitted = false;
+        canvas.classList.remove('panning-active');
+      }
+    }
+    canvas.addEventListener('pointerup', endPointer);
+    canvas.addEventListener('pointercancel', endPointer);
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+  })();
+
+  // PANEL DE ZOOM MOVIBLE (arrastrar y soltar en cualquier parte del plano)
+  (function initZoomControlsDrag() {
+    const zoomPanel = document.getElementById('zoom-controls');
+    const zoomHandle = document.getElementById('zoom-drag-handle');
+    const ZOOM_POS_KEY = 'crypto_floor_zoom_pos_v1';
+
+    function applyPos(left, top) {
+      zoomPanel.style.left = left + 'px';
+      zoomPanel.style.top = top + 'px';
+      zoomPanel.style.right = 'auto';
+      zoomPanel.style.bottom = 'auto';
+    }
+
+    const savedPos = JSON.parse(localStorage.getItem(ZOOM_POS_KEY) || 'null');
+    if (savedPos) applyPos(savedPos.left, savedPos.top);
+
+    zoomHandle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const canvasRect = canvas.getBoundingClientRect();
+      const panelRect = zoomPanel.getBoundingClientRect();
+      const offsetX = e.clientX - panelRect.left;
+      const offsetY = e.clientY - panelRect.top;
+      zoomHandle.setPointerCapture(e.pointerId);
+
+      function onMove(ev) {
+        let left = ev.clientX - canvasRect.left - offsetX;
+        let top = ev.clientY - canvasRect.top - offsetY;
+        left = Math.max(4, Math.min(left, canvasRect.width - panelRect.width - 4));
+        top = Math.max(4, Math.min(top, canvasRect.height - panelRect.height - 4));
+        applyPos(left, top);
+      }
+      function onUp() {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        const finalRect = zoomPanel.getBoundingClientRect();
+        const cRect = canvas.getBoundingClientRect();
+        localStorage.setItem(ZOOM_POS_KEY, JSON.stringify({
+          left: finalRect.left - cRect.left,
+          top: finalRect.top - cRect.top
+        }));
+      }
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    });
+  })();
+
+  const fechaInput = document.getElementById('f-fecha');
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  fechaInput.value = todayStr();
+
+  function getLayout() {
+    const dateKey = fechaInput.value;
+    if (!window.layoutsData[dateKey]) {
+      window.layoutsData[dateKey] = { PB: [], PA: [] };
+    }
+    if (!window.layoutsData[dateKey][currentFloor]) {
+      window.layoutsData[dateKey][currentFloor] = [];
+    }
+    return window.layoutsData[dateKey][currentFloor];
+  }
+
+  // Numeración automática de mesas al colocarlas en el plano.
+  // Planta Baja (PB): por secciones de diez -> M10-M16, M20-M26, M30-M36...
+  // Planta Alta (PA): numeración simple y correlativa -> M1, M2, M3... hasta M20.
+  function nextMesaNombre(floor) {
+    const mesaCount = getLayout().filter(it => it.tipo === 'mesa').length;
+    if (floor === 'PA') {
+      return 'M' + (mesaCount + 1);
+    }
+    const seccion = Math.floor(mesaCount / 7);
+    const posEnSeccion = mesaCount % 7;
+    const base = 10 * (seccion + 1);
+    return 'M' + (base + posEnSeccion);
+  }
+
+  // Resuelve la clave de reserva real: si la mesa pertenece a un grupo combinado,
+  // todas las mesas del grupo comparten la misma clave (misma reserva unificada).
+  function resKey(muebleId) {
+    const item = getLayout().find(f => f.id === muebleId);
+    return (item && item.grupoId) ? ('grp_' + item.grupoId) : muebleId;
+  }
+
+  function getReserva(muebleId) {
+    const dateKey = fechaInput.value;
+    if (!window.reservasData[dateKey]) window.reservasData[dateKey] = {};
+    const key = resKey(muebleId);
+    if (!window.reservasData[dateKey][key]) {
+      window.reservasData[dateKey][key] = {
+        estado: 'disponible', cliente: '', telefono: '', personas: 0, mesero: ''
+      };
+    }
+    return window.reservasData[dateKey][key];
+  }
+
+  function saveLayouts() {
+    localStorage.setItem(STORAGE_KEY_LAYOUT, JSON.stringify(window.layoutsData));
+    if (typeof window.saveToCloud === 'function') window.saveToCloud();
+  }
+
+  function saveReservas() {
+    localStorage.setItem(STORAGE_KEY_RESERVAS, JSON.stringify(window.reservasData));
+    if (typeof window.saveToCloud === 'function') window.saveToCloud();
+  }
+
+  function saveCli() {
+    localStorage.setItem(STORAGE_KEY_CLI, JSON.stringify(window.clientes));
+    if (typeof window.saveToCloud === 'function') window.saveToCloud();
+  }
+
+  function savePresets() {
+    localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(window.presetsData));
+    if (typeof window.saveToCloud === 'function') window.saveToCloud();
+  }
+
+  function pctPos(clientX, clientY) {
+    const r = canvasStage.getBoundingClientRect();
+    let x = ((clientX - r.left) / r.width) * 100;
+    let y = ((clientY - r.top) / r.height) * 100;
+    x = Math.max(-45, Math.min(145, x));
+    y = Math.max(-45, Math.min(145, y));
+    return { x, y };
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (e.target === canvas || e.target === canvasStage) {
+      selectedIds.clear();
+      renderFurniture();
+    }
+  });
+
+  window.renderFurniture = function() {
+    canvasStage.querySelectorAll('.furniture').forEach(el => el.remove());
+
+    const currentList = getLayout();
+    currentList.forEach(item => {
+      const el = document.createElement('div');
+      const res = getReserva(item.id);
+
+      el.className = `furniture ${item.tipo}`;
+      if (item.tipo === 'mesa') el.classList.add(`est-${res.estado}`);
+      if (item.tipo === 'mesa' && (item.unida || item.grupoId)) {
+        el.classList.add('mesa-unida');
+        const divider = document.createElement('div');
+        divider.className = 'divider-3d';
+        el.appendChild(divider);
+      }
+      if (item.tipo === 'sillon' && item.colorVariante === 'rojo') el.classList.add('color-rojo');
+      if (item.locked) el.classList.add('locked');
+
+      if (selectedIds.has(item.id)) {
+        el.classList.add(multiSelectMode ? 'multi-selected' : 'selected');
+      }
+
+      el.style.left = item.x + '%';
+      el.style.top = item.y + '%';
+      if (item.anchoPx) el.style.width = item.anchoPx + 'px';
+      if (item.altoPx) el.style.height = item.altoPx + 'px';
+
+      const rot = item.rotacion || 0;
+      el.style.transform = `translate(-50%,-50%) rotate(${rot}deg)`;
+      el.dataset.id = item.id;
+
+      const normRot = ((rot % 360) + 360) % 360;
+      let textAngleCompensation = -rot;
+      if (normRot === 90 || normRot === 270) {
+        textAngleCompensation = -rot + 90;
+      } else if (normRot === 180) {
+        textAngleCompensation = 0;
+      }
+
+      const inner = document.createElement('div');
+      inner.style.transform = `rotate(${textAngleCompensation}deg)`;
+      inner.style.display = 'flex';
+      inner.style.flexDirection = 'column';
+      inner.style.alignItems = 'center';
+      inner.style.justifyContent = 'center';
+      inner.style.width = '100%';
+
+      const mainTxt = document.createElement('div');
+      mainTxt.className = 'title-txt';
+
+      if (item.tipo === 'mesa' && res.cliente) {
+        mainTxt.textContent = res.cliente;
+      } else {
+        mainTxt.textContent = item.nombre || item.tipo.toUpperCase();
+      }
+      inner.appendChild(mainTxt);
+
+      if (item.tipo === 'mesa' && res.mesero) {
+        const subTxt = document.createElement('div');
+        subTxt.className = 'sub-txt';
+        subTxt.textContent = 'M: ' + res.mesero;
+        inner.appendChild(subTxt);
+      }
+
+      el.appendChild(inner);
+
+      if (item.tipo === 'mesa' && res.personas > 0) {
+        const pax = document.createElement('div');
+        pax.className = 'pax';
+        pax.style.transform = `rotate(${-rot}deg)`;
+        pax.textContent = res.personas;
+        el.appendChild(pax);
+      }
+
+      if (!multiSelectMode && selectedIds.has(item.id) && !item.locked) {
+        ['se', 'sw', 'ne', 'nw'].forEach(pos => {
+          const handle = document.createElement('div');
+          handle.className = `resize-handle ${pos}`;
+          attachResizeHandle(handle, item, pos);
+          el.appendChild(handle);
+        });
+      }
+
+      attachDrag(el, item);
+      canvasStage.appendChild(el);
+    });
+
+    renderWaiters();
+    updateMultiBar();
+  };
+
+  function attachResizeHandle(handle, item, pos) {
+    handle.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startW = item.anchoPx || 50;
+      const startH = item.altoPx || 50;
+
+      function onMove(ev) {
+        const dx = (ev.clientX - startX) / currentZoom;
+        const dy = (ev.clientY - startY) / currentZoom;
+
+        let newW = startW + (pos.includes('e') ? dx : -dx);
+        let newH = startH + (pos.includes('s') ? dy : -dy);
+
+        item.anchoPx = Math.max(20, Math.round(newW));
+        item.altoPx = Math.max(20, Math.round(newH));
+        renderFurniture();
+      }
+
+      function onUp(ev) {
+        handle.releasePointerCapture(ev.pointerId);
+        handle.removeEventListener('pointermove', onMove);
+        handle.removeEventListener('pointerup', onUp);
+        saveLayouts();
+      }
+
+      handle.addEventListener('pointermove', onMove);
+      handle.addEventListener('pointerup', onUp);
+    });
+  }
+
+  function attachDrag(el, item) {
+    let startX, startY, moved, pointerId;
+    let rafPending = false;
+    let pendingClientX = 0, pendingClientY = 0;
+
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target.classList.contains('resize-handle')) return;
+      e.stopPropagation();
+      pointerId = e.pointerId;
+      el.setPointerCapture(pointerId);
+      startX = e.clientX;
+      startY = e.clientY;
+      moved = false;
+      if (!item.locked && window.editModeActive) {
+        el.classList.add('dragging');
+        el.dataset.baseTransform = el.style.transform;
+        el.style.transform = el.style.transform + ' scale(1.06)';
+      }
+    });
+
+    function applyDragFrame() {
+      rafPending = false;
+      let p = pctPos(pendingClientX, pendingClientY);
+      // En Planta Alta, el arrastre queda restringido al suelo real de la
+      // plataforma (nunca al hueco central que da vista a Planta Baja).
+      if (currentFloor === 'PA' && typeof window.clampPAPlatformPct === 'function') {
+        p = window.clampPAPlatformPct(p.x, p.y);
+      }
+      item.x = snapToGridActive ? Math.round(p.x / GRID_STEP_PCT) * GRID_STEP_PCT : p.x;
+      item.y = snapToGridActive ? Math.round(p.y / GRID_STEP_PCT) * GRID_STEP_PCT : p.y;
+      el.style.left = item.x + '%';
+      el.style.top = item.y + '%';
+    }
+
+    el.addEventListener('pointermove', (e) => {
+      // Bloqueo de movimiento: solo se puede arrastrar con Modo Edición
+      // activo (igual que en la Vista 3D) — en modo normal/operación los
+      // elementos quedan fijos para evitar desplazamientos por touch accidental.
+      if (item.locked || view3DActive || !window.editModeActive) return;
+      if (e.pointerId !== pointerId || !el.hasPointerCapture(pointerId)) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      if (moved) {
+        // Throttleado con requestAnimationFrame para máxima fluidez al arrastrar mesas
+        pendingClientX = e.clientX;
+        pendingClientY = e.clientY;
+        if (!rafPending) {
+          rafPending = true;
+          requestAnimationFrame(applyDragFrame);
+        }
+      }
+    });
+
+    el.addEventListener('pointerup', (e) => {
+      if (pointerId !== e.pointerId) return;
+      el.releasePointerCapture(pointerId);
+      el.classList.remove('dragging');
+      if (el.dataset.baseTransform !== undefined) {
+        el.style.transform = el.dataset.baseTransform;
+        delete el.dataset.baseTransform;
+      }
+
+      if (moved && !item.locked) {
+        saveLayouts();
+      } else {
+        if (multiSelectMode) {
+          if (selectedIds.has(item.id)) selectedIds.delete(item.id);
+          else selectedIds.add(item.id);
+        } else {
+          if (selectedIds.has(item.id)) {
+            openModal(item.id);
+          } else {
+            selectedIds.clear();
+            selectedIds.add(item.id);
+          }
+        }
+        renderFurniture();
+      }
+    });
+  }
+
+  function setupPaletteDrag(paletteId, tipo, paletteKey) {
+    const src = document.getElementById(paletteId);
+    if (!src) return;
+    const key = paletteKey || tipo;
+
+    src.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const ghost = src.cloneNode(true);
+      ghost.classList.add('ghost');
+      ghost.style.width = src.offsetWidth + 'px';
+      document.body.appendChild(ghost);
+      moveGhost(ghost, e.clientX, e.clientY);
+
+      function onMove(ev) { moveGhost(ghost, ev.clientX, ev.clientY); }
+      function onUp(ev) {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        ghost.remove();
+        const r = canvasStage.getBoundingClientRect();
+        if (ev.clientX > r.left && ev.clientX < r.right && ev.clientY > r.top && ev.clientY < r.bottom) {
+          let p = pctPos(ev.clientX, ev.clientY);
+          if (currentFloor === 'PA' && typeof window.clampPAPlatformPct === 'function') {
+            p = window.clampPAPlatformPct(p.x, p.y);
+          }
+          const defaultSizes = {
+            mesa: {a: 50, h: 50}, mesa_doble: {a: 100, h: 50}, sillon: {a: 110, h: 42}, bocina: {a: 45, h: 45}, cristal: {a: 120, h: 15},
+            dj: {a: 120, h: 50}, pantalla: {a: 140, h: 20}, entrada: {a: 80, h: 40}, salida: {a: 80, h: 40},
+            wc: {a: 80, h: 50}, pasillo: {a: 100, h: 30}, barra: {a: 180, h: 45},
+            caja: {a: 70, h: 40}, escaleras: {a: 80, h: 60}
+          };
+          const size = defaultSizes[key] || {a: 50, h: 50};
+          const newItem = {
+            id: 'item_' + Date.now(),
+            tipo: tipo,
+            nombre: tipo === 'mesa' ? nextMesaNombre(currentFloor) : (NOMBRES_DEFAULT[key] || tipo.toUpperCase()),
+            x: p.x, y: p.y,
+            anchoPx: size.a,
+            altoPx: size.h,
+            rotacion: 0,
+            locked: false
+          };
+          getLayout().push(newItem);
+          selectedIds.clear();
+          selectedIds.add(newItem.id);
+          saveLayouts();
+          renderFurniture();
+        }
+      }
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    });
+  }
+
+  function moveGhost(ghost, x, y) {
+    ghost.style.left = (x - ghost.offsetWidth / 2) + 'px';
+    ghost.style.top = (y - ghost.offsetHeight / 2) + 'px';
+  }
+
+  ['mesa','sillon','bocina','cristal','dj','pantalla','barra','entrada','salida','wc','pasillo','caja','escaleras'].forEach(t => {
+    setupPaletteDrag('pal-' + t, t);
+  });
+  setupPaletteDrag('pal-mesa-doble', 'mesa', 'mesa_doble');
+
+  document.getElementById('btn-clear-day').onclick = () => {
+    if (confirm('¿Vaciar todo el plano del día seleccionado?')) {
+      const dateKey = fechaInput.value;
+      window.layoutsData[dateKey] = { PB: [], PA: [] };
+      selectedIds.clear();
+      saveLayouts();
+      renderFurniture();
+    }
+  };
+
+  const multiBtn = document.getElementById('btn-toggle-multi');
+  multiBtn.addEventListener('click', () => {
+    multiSelectMode = !multiSelectMode;
+    multiBtn.classList.toggle('active', multiSelectMode);
+    selectedIds.clear();
+    renderFurniture();
+  });
+
+  function updateMultiBar() {
+    const bar = document.getElementById('multi-tools');
+    const countTxt = document.getElementById('multi-count');
+    if (multiSelectMode && selectedIds.size > 0) {
+      bar.classList.add('active');
+      countTxt.textContent = `${selectedIds.size} elementos seleccionados`;
+    } else {
+      bar.classList.remove('active');
+    }
+  }
+
+  document.getElementById('btn-del-multi').addEventListener('click', () => {
+    const dateKey = fechaInput.value;
+    window.layoutsData[dateKey][currentFloor] = getLayout().filter(item => !selectedIds.has(item.id));
+    selectedIds.clear();
+    saveLayouts();
+    renderFurniture();
+  });
+
+  // ALINEAR EN FILA (mismo centro vertical) — para simetría perfecta en eventos especiales
+  document.getElementById('btn-align-h').addEventListener('click', () => {
+    const seleccion = getLayout().filter(it => selectedIds.has(it.id));
+    if (seleccion.length < 2) { alert('Selecciona al menos 2 elementos para alinearlos.'); return; }
+    const avgY = seleccion.reduce((sum, it) => sum + it.y, 0) / seleccion.length;
+    seleccion.forEach(it => { it.y = avgY; });
+    saveLayouts();
+    renderFurniture();
+  });
+
+  // ALINEAR EN COLUMNA (mismo centro horizontal)
+  document.getElementById('btn-align-v').addEventListener('click', () => {
+    const seleccion = getLayout().filter(it => selectedIds.has(it.id));
+    if (seleccion.length < 2) { alert('Selecciona al menos 2 elementos para alinearlos.'); return; }
+    const avgX = seleccion.reduce((sum, it) => sum + it.x, 0) / seleccion.length;
+    seleccion.forEach(it => { it.x = avgX; });
+    saveLayouts();
+    renderFurniture();
+  });
+
+  // DISTRIBUIR ESPACIO PAREJO entre el primero y el último de la selección (detecta si es fila u columna)
+  document.getElementById('btn-distribute').addEventListener('click', () => {
+    const seleccion = getLayout().filter(it => selectedIds.has(it.id));
+    if (seleccion.length < 3) { alert('Selecciona al menos 3 elementos para distribuir el espacio de forma pareja.'); return; }
+
+    const spreadX = Math.max(...seleccion.map(it => it.x)) - Math.min(...seleccion.map(it => it.x));
+    const spreadY = Math.max(...seleccion.map(it => it.y)) - Math.min(...seleccion.map(it => it.y));
+    const eje = spreadX >= spreadY ? 'x' : 'y';
+
+    const ordenados = [...seleccion].sort((a, b) => a[eje] - b[eje]);
+    const min = ordenados[0][eje];
+    const max = ordenados[ordenados.length - 1][eje];
+    const paso = (max - min) / (ordenados.length - 1);
+
+    ordenados.forEach((it, i) => { it[eje] = min + paso * i; });
+
+    saveLayouts();
+    renderFurniture();
+  });
+
+  // VINCULAR MESAS SELECCIONADAS EN UN GRUPO "MESA COMBINADA" (no destructivo, reserva unificada)
+  document.getElementById('btn-unir-mesas').addEventListener('click', () => {
+    const dateKey = fechaInput.value;
+    const seleccion = getLayout().filter(it => selectedIds.has(it.id) && it.tipo === 'mesa');
+
+    if (seleccion.length < 2) {
+      alert('Selecciona al menos 2 mesas para vincularlas como Mesa Combinada.');
+      return;
+    }
+    if (seleccion.some(it => it.grupoId)) {
+      alert('Una o más mesas seleccionadas ya pertenecen a un grupo combinado. Desúnelas primero con "🔓 Desunir Mesas".');
+      return;
+    }
+    if (!confirm(`¿Vincular ${seleccion.length} mesas como una Mesa Combinada? Compartirán una sola reserva (mismo cliente, horario y estado). Podrás desunirlas cuando quieras.`)) {
+      return;
+    }
+
+    if (!window.reservasData[dateKey]) window.reservasData[dateKey] = {};
+
+    // Consolida cualquier reserva previa individual en una sola reserva unificada
+    let mergedRes = null;
+    let totalPax = 0;
+    seleccion.forEach(it => {
+      const r = window.reservasData[dateKey][it.id];
+      if (r) {
+        if (r.estado !== 'disponible' && !mergedRes) mergedRes = { ...r };
+        if (r.personas) totalPax += Number(r.personas) || 0;
+        delete window.reservasData[dateKey][it.id];
+      }
+    });
+
+    const grupoId = 'g' + Date.now();
+    seleccion.forEach(it => { it.grupoId = grupoId; });
+
+    window.reservasData[dateKey]['grp_' + grupoId] = mergedRes
+      ? { ...mergedRes, personas: totalPax || mergedRes.personas || 0 }
+      : { estado: 'disponible', cliente: '', telefono: '', personas: 0, mesero: '' };
+
+    saveLayouts();
+    saveReservas();
+    renderFurniture();
+  });
+
+  // DESUNIR MESAS DE SU GRUPO COMBINADO (la reserva compartida se copia a cada mesa)
+  document.getElementById('btn-desunir-mesas').addEventListener('click', () => {
+    const dateKey = fechaInput.value;
+    const seleccion = getLayout().filter(it => selectedIds.has(it.id) && it.tipo === 'mesa' && it.grupoId);
+
+    if (seleccion.length === 0) {
+      alert('Selecciona al menos una mesa combinada para desunirla de su grupo.');
+      return;
+    }
+
+    const grupos = new Set(seleccion.map(it => it.grupoId));
+    if (!window.reservasData[dateKey]) window.reservasData[dateKey] = {};
+
+    grupos.forEach(grupoId => {
+      const miembros = getLayout().filter(it => it.grupoId === grupoId);
+      const groupKey = 'grp_' + grupoId;
+      const resCompartida = window.reservasData[dateKey][groupKey];
+
+      miembros.forEach(it => {
+        delete it.grupoId;
+        if (resCompartida) window.reservasData[dateKey][it.id] = { ...resCompartida };
+      });
+
+      delete window.reservasData[dateKey][groupKey];
+    });
+
+    saveLayouts();
+    saveReservas();
+    renderFurniture();
+  });
+
+  // NUEVA RESERVA DIRECTA/INDIVIDUAL
+  document.getElementById('btn-open-add-reserva').onclick = () => {
+    document.getElementById('sr-fecha').value = fechaInput.value;
+    document.getElementById('sr-nombre').value = '';
+    document.getElementById('sr-telefono').value = '';
+    document.getElementById('sr-personas').value = '2';
+    overlaySingleRes.classList.add('open');
+    if (document.activeElement) document.activeElement.blur();
+  };
+
+  document.getElementById('btn-sr-cancel').onclick = () => overlaySingleRes.classList.remove('open');
+  document.getElementById('btn-sr-save').onclick = () => {
+    const nombre = document.getElementById('sr-nombre').value.trim();
+    const tel = document.getElementById('sr-telefono').value.trim();
+    const pax = parseInt(document.getElementById('sr-personas').value) || 2;
+    const fecha = document.getElementById('sr-fecha').value || fechaInput.value;
+
+    if (!nombre) {
+      alert('Introduce el nombre de la reserva');
+      return;
+    }
+
+    if (!window.reservasData[fecha]) window.reservasData[fecha] = {};
+    const resId = 'unassigned_' + Date.now();
+    window.reservasData[fecha][resId] = {
+      estado: 'reservada',
+      cliente: nombre,
+      telefono: tel,
+      personas: pax,
+      mesero: ''
+    };
+
+    let cli = window.clientes.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
+    if (!cli) {
+      cli = { id: 'cli_' + Date.now(), nombre: nombre, telefono: tel, visitas: 1, ultimaVisita: '', preferencias: '' };
+      window.clientes.push(cli);
+    } else {
+      cli.visitas += 1;
+    }
+
+    saveCli();
+    saveReservas();
+    renderAllCRM();
+    overlaySingleRes.classList.remove('open');
+    alert(`Reserva registrada para ${nombre}. Puedes asignarla a una mesa desde el plano usando la lupa de búsqueda.`);
+  };
+
+  // MODAL DE MESAS - LUPA Y AUTOCOMPLETADO DE RESERVAS
+  const searchResInput = document.getElementById('f-search-reserva');
+  const searchResDropdown = document.getElementById('search-results-dropdown');
+
+  searchResInput.addEventListener('input', updateSearchDropdown);
+  searchResInput.addEventListener('focus', updateSearchDropdown);
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-box-container')) {
+      searchResDropdown.classList.remove('visible');
+    }
+  });
+
+  function updateSearchDropdown() {
+    const query = searchResInput.value.toLowerCase().trim();
+    const dateKey = fechaInput.value;
+    const currentRes = window.reservasData[dateKey] || {};
+
+    searchResDropdown.innerHTML = '';
+    let matches = [];
+
+    Object.keys(currentRes).forEach(resId => {
+      const r = currentRes[resId];
+      if (r && r.cliente && r.cliente.toLowerCase().includes(query)) {
+        matches.push({ resId, ...r });
+      }
+    });
+
+    window.clientes.forEach(c => {
+      if (c.nombre.toLowerCase().includes(query) && !matches.some(m => m.cliente.toLowerCase() === c.nombre.toLowerCase())) {
+        matches.push({ resId: 'crm_' + c.id, cliente: c.nombre, telefono: c.telefono, personas: 2, estado: 'reservada', mesero: '' });
+      }
+    });
+
+    if (matches.length === 0) {
+      searchResDropdown.innerHTML = '<div style="padding:10px; font-size:11px; color:var(--text-low);">No se encontraron reservas coincidentes.</div>';
+    } else {
+      matches.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'search-res-item';
+        div.innerHTML = `
+          <div>
+            <b>${item.cliente}</b> <small style="color:var(--text-low);">(${item.personas || 2} pax)</small>
+            <br><span style="font-size:10px; color:var(--accent);">${item.telefono || 'Sin tel.'}</span>
+          </div>
+          <span style="font-size:10px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">Seleccionar</span>
+        `;
+        div.onclick = () => {
+          document.getElementById('f-cliente').value = item.cliente;
+          document.getElementById('f-telefono').value = item.telefono || '';
+          document.getElementById('f-personas').value = item.personas || 2;
+          if (item.mesero) document.getElementById('f-mesero').value = item.mesero;
+          selectedEstado = 'reservada';
+          updateEstadoButtons();
+          searchResDropdown.classList.remove('visible');
+          searchResInput.value = '';
+        };
+        searchResDropdown.appendChild(div);
+      });
+    }
+
+    searchResDropdown.classList.add('visible');
+  }
+
+  // PRESETS
+  document.getElementById('btn-open-presets').onclick = () => {
+    renderPresetsModal();
+    overlayPresets.classList.add('open');
+    if (document.activeElement) document.activeElement.blur();
+  };
+  document.getElementById('btn-close-presets').onclick = () => overlayPresets.classList.remove('open');
+
+  function renderPresetsModal() {
+    const container = document.getElementById('presets-container');
+    container.innerHTML = '';
+
+    for (let slot = 1; slot <= 5; slot++) {
+      const pData = window.presetsData[slot];
+      const div = document.createElement('div');
+      div.className = 'preset-slot';
+
+      if (pData) {
+        div.innerHTML = `
+          <div class="preset-info">
+            <span class="preset-title">Plantilla ${slot}: ${pData.name}</span>
+            <span class="preset-status">Guardada con elementos en PB y PA</span>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn primary" style="font-size:11px; padding:6px 10px;" onclick="window.applyPreset(${slot})">Cargar a Hoy</button>
+            <button class="btn" style="font-size:11px; padding:6px 10px;" onclick="window.saveCurrentToPreset(${slot})">Sobrescribir</button>
+            <button class="btn" style="font-size:11px; padding:6px 10px; background:var(--neon-red);" onclick="window.deletePreset(${slot})">🗑️</button>
+          </div>
+        `;
+      } else {
+        div.innerHTML = `
+          <div class="preset-info">
+            <span class="preset-title" style="color:var(--text-low);">Plantilla ${slot} (Vacía)</span>
+            <span class="preset-status">Sin diseño asignado</span>
+          </div>
+          <button class="btn preset-btn" style="font-size:11px; padding:6px 12px;" onclick="window.saveCurrentToPreset(${slot})">💾 Guardar Plano Actual</button>
+        `;
+      }
+      container.appendChild(div);
+    }
+  }
+
+  window.saveCurrentToPreset = function(slot) {
+    const name = prompt(`Introduce un nombre para la Plantilla ${slot}:`, window.presetsData[slot]?.name || `Diseño Config ${slot}`);
+    if (!name) return;
+
+    const dateKey = fechaInput.value;
+    const currentDayData = window.layoutsData[dateKey] || { PB: [], PA: [] };
+
+    window.presetsData[slot] = {
+      name: name,
+      PB: JSON.parse(JSON.stringify(currentDayData.PB || [])),
+      PA: JSON.parse(JSON.stringify(currentDayData.PA || []))
+    };
+
+    localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(window.presetsData));
+    if (typeof window.savePresetToFirebase === 'function') {
+      window.savePresetToFirebase(slot, window.presetsData[slot]);
+    }
+    renderPresetsModal();
+  };
+
+  window.applyPreset = function(slot) {
+    const pData = window.presetsData[slot];
+    if (!pData) return;
+
+    if (confirm(`¿Cargar "${pData.name}" en la fecha ${fechaInput.value}? Se reemplazará el plano actual de esta fecha.`)) {
+      const dateKey = fechaInput.value;
+      window.layoutsData[dateKey] = {
+        PB: JSON.parse(JSON.stringify(pData.PB || [])),
+        PA: JSON.parse(JSON.stringify(pData.PA || []))
+      };
+      saveLayouts();
+      renderFurniture();
+      overlayPresets.classList.remove('open');
+    }
+  };
+
+  window.deletePreset = function(slot) {
+    if (confirm(`¿Eliminar la Plantilla ${slot}?`)) {
+      delete window.presetsData[slot];
+      savePresets();
+      renderPresetsModal();
+    }
+  };
+
+  function openModal(id) {
+    const item = getLayout().find(f => f.id === id);
+    if (!item) return;
+    activeElementId = id;
+
+    document.getElementById('modal-title').textContent = item.nombre || item.tipo.toUpperCase();
+    document.getElementById('f-nombre').value = item.nombre || '';
+    document.getElementById('f-ancho').value = item.anchoPx || 50;
+    document.getElementById('f-alto').value = item.altoPx || 50;
+
+    currentRotation = item.rotacion || 0;
+    isLocked = !!item.locked;
+    updateRotateValue();
+    updateLockState();
+
+    const resFields = document.getElementById('reserva-fields');
+    const sillonColorField = document.getElementById('sillon-color-field');
+    if (item.tipo === 'sillon') {
+      sillonColorField.style.display = 'block';
+      selectedColorVariante = item.colorVariante || 'gris';
+      updateColorButtons();
+    } else {
+      sillonColorField.style.display = 'none';
+    }
+
+    if (item.tipo === 'mesa') {
+      resFields.style.display = 'block';
+      let res = getReserva(item.id);
+
+      if (window.pendingAssignClient) {
+        res.cliente = window.pendingAssignClient.cliente;
+        res.telefono = window.pendingAssignClient.telefono;
+        res.personas = window.pendingAssignClient.personas;
+        res.mesero = window.pendingAssignClient.mesero;
+        res.estado = 'ocupada';
+        window.pendingAssignClient = null;
+      }
+
+      document.getElementById('f-cliente').value = res.cliente || '';
+      document.getElementById('f-telefono').value = res.telefono || '';
+      document.getElementById('f-personas').value = res.personas || '';
+      document.getElementById('f-mesero').value = res.mesero || '';
+      renderMeseroChips(document.getElementById('mesero-quick-selector'), document.getElementById('f-mesero'));
+      selectedEstado = res.estado || 'disponible';
+      updateEstadoButtons();
+    } else {
+      resFields.style.display = 'none';
+    }
+
+    overlay.classList.add('open');
+    if (document.activeElement) document.activeElement.blur();
+  }
+
+  function closeModal() {
+    overlay.classList.remove('open');
+    activeElementId = null;
+  }
+
+  function updateEstadoButtons() {
+    document.querySelectorAll('.estado-btn').forEach(b => {
+      b.classList.remove('sel-disponible','sel-reservada','sel-ocupada');
+      if (b.dataset.estado === selectedEstado) b.classList.add('sel-' + selectedEstado);
+    });
+  }
+
+  function updateColorButtons() {
+    document.querySelectorAll('.color-btn').forEach(b => {
+      b.classList.remove('sel-gris', 'sel-rojo');
+      if (b.dataset.color === selectedColorVariante) b.classList.add('sel-' + selectedColorVariante);
+    });
+  }
+
+  function updateRotateValue() {
+    document.getElementById('rotate-value').textContent = currentRotation + '°';
+  }
+
+  function updateLockState() {
+    const btn = document.getElementById('btn-lock');
+    if (isLocked) {
+      btn.textContent = '🔒 Fijado';
+      btn.classList.add('locked');
+    } else {
+      btn.textContent = '🔓 Libre';
+      btn.classList.remove('locked');
+    }
+  }
+
+  document.getElementById('btn-rotate').addEventListener('click', () => {
+    currentRotation = (currentRotation + 90) % 360;
+    updateRotateValue();
+  });
+
+  document.getElementById('btn-lock').addEventListener('click', () => {
+    isLocked = !isLocked;
+    updateLockState();
+  });
+
+  document.querySelectorAll('.estado-btn').forEach(b => {
+    b.addEventListener('click', () => { selectedEstado = b.dataset.estado; updateEstadoButtons(); });
+  });
+
+  document.querySelectorAll('.color-btn').forEach(b => {
+    b.addEventListener('click', () => { selectedColorVariante = b.dataset.color; updateColorButtons(); });
+  });
+
+  document.getElementById('f-mesero').addEventListener('input', () => {
+    const val = document.getElementById('f-mesero').value.trim().toLowerCase();
+    document.querySelectorAll('#mesero-quick-selector .mesero-chip').forEach(c => {
+      c.classList.toggle('sel-mesero', c.textContent.trim().toLowerCase() === val);
+    });
+  });
+
+  document.getElementById('btn-cancel').addEventListener('click', closeModal);
+  overlay.addEventListener('pointerdown', (e) => { if (e.target === overlay) closeModal(); });
+
+  document.getElementById('btn-save').addEventListener('click', () => {
+    const item = getLayout().find(f => f.id === activeElementId);
+    if (!item) return;
+
+    item.nombre = document.getElementById('f-nombre').value.trim() || item.tipo.toUpperCase();
+    item.anchoPx = parseInt(document.getElementById('f-ancho').value) || 50;
+    item.altoPx = parseInt(document.getElementById('f-alto').value) || 50;
+    item.rotacion = currentRotation;
+    item.locked = isLocked;
+
+    if (item.tipo === 'sillon') {
+      item.colorVariante = selectedColorVariante;
+    }
+
+    if (item.tipo === 'mesa') {
+      const res = getReserva(item.id);
+      res.estado = selectedEstado;
+      res.cliente = document.getElementById('f-cliente').value.trim();
+      res.telefono = document.getElementById('f-telefono').value.trim();
+      res.personas = parseInt(document.getElementById('f-personas').value) || 0;
+      res.mesero = document.getElementById('f-mesero').value.trim();
+
+      saveReservas();
+
+      if (res.cliente) {
+        let cli = window.clientes.find(c => c.nombre.toLowerCase() === res.cliente.toLowerCase() && (res.telefono ? c.telefono === res.telefono : true));
+        if (!cli) {
+          cli = { id: 'cli_' + Date.now(), nombre: res.cliente, telefono: res.telefono, visitas: 0, ultimaVisita: '', preferencias: '' };
+          window.clientes.push(cli);
+        }
+        cli.visitas += 1;
+        cli.ultimaVisita = item.nombre;
+        saveCli();
+      }
+    }
+
+    saveLayouts();
+    renderFurniture();
+    renderAllCRM();
+    closeModal();
+  });
+
+  document.getElementById('btn-delete').addEventListener('click', () => {
+    const arr = getLayout();
+    const idx = arr.findIndex(f => f.id === activeElementId);
+    if (idx > -1) arr.splice(idx, 1);
+    selectedIds.clear();
+    saveLayouts();
+    renderFurniture();
+    renderAllCRM();
+    closeModal();
+  });
+
+  // CARGA MASIVA - INTERFAZ DINÁMICA
+  const batchContainer = document.getElementById('batch-rows-container');
+
+  function createBatchRow(cliente='', telefono='', personas=2, mesa='', mesero='') {
+    const row = document.createElement('div');
+    row.className = 'batch-row';
+    row.innerHTML = `
+      <input type="text" class="b-cliente" placeholder="Nombre cliente" value="${cliente}">
+      <input type="text" class="b-telefono" placeholder="Teléfono" value="${telefono}">
+      <input type="number" class="b-personas" placeholder="Pax" value="${personas}">
+      <input type="text" class="b-mesa" placeholder="Mesa" value="${mesa}">
+      <input type="text" class="b-mesero" placeholder="Mesero" value="${mesero}" list="meseros-datalist">
+      <button class="btn-remove-row" title="Eliminar fila">✕</button>
+    `;
+    row.querySelector('.btn-remove-row').onclick = () => row.remove();
+    batchContainer.appendChild(row);
+  }
+
+  document.getElementById('btn-add-batch-res').onclick = () => {
+    batchContainer.innerHTML = '';
+    createBatchRow();
+    overlayBatch.classList.add('open');
+    if (document.activeElement) document.activeElement.blur();
+  };
+
+  document.getElementById('btn-add-batch-row').onclick = () => createBatchRow();
+  document.getElementById('btn-batch-cancel').onclick = () => overlayBatch.classList.remove('open');
+
+  document.getElementById('btn-batch-save').onclick = () => {
+    const rows = batchContainer.querySelectorAll('.batch-row');
+    const dateKey = fechaInput.value;
+    if (!window.reservasData[dateKey]) window.reservasData[dateKey] = {};
+
+    rows.forEach((row, index) => {
+      const cliente = row.querySelector('.b-cliente').value.trim();
+      const telefono = row.querySelector('.b-telefono').value.trim();
+      const personas = parseInt(row.querySelector('.b-personas').value) || 2;
+      const mesaAsignada = row.querySelector('.b-mesa').value.trim();
+      const mesero = row.querySelector('.b-mesero').value.trim();
+
+      if (cliente) {
+        let targetId = 'res_batch_' + Date.now() + '_' + index;
+
+        if (mesaAsignada && window.layoutsData[dateKey]) {
+          ['PB','PA'].forEach(p => {
+            if (window.layoutsData[dateKey][p]) {
+              const match = window.layoutsData[dateKey][p].find(m => m.nombre.toLowerCase() === mesaAsignada.toLowerCase() || m.id.toLowerCase() === mesaAsignada.toLowerCase());
+              if (match) targetId = match.id;
+            }
+          });
+        }
+
+        window.reservasData[dateKey][targetId] = {
+          estado: 'reservada',
+          cliente: cliente,
+          telefono: telefono,
+          personas: personas,
+          mesero: mesero
+        };
+
+        let cli = window.clientes.find(c => c.nombre.toLowerCase() === cliente.toLowerCase());
+        if (!cli) {
+          cli = { id: 'cli_' + Date.now(), nombre: cliente, telefono: telefono, visitas: 1, ultimaVisita: mesaAsignada, preferencias: '' };
+          window.clientes.push(cli);
+        } else {
+          cli.visitas += 1;
+        }
+      }
+    });
+
+    saveCli();
+    saveReservas();
+    renderFurniture();
+    renderAllCRM();
+    overlayBatch.classList.remove('open');
+  };
+
+  // CHECK-IN
+  document.getElementById('btn-quick-checkin').onclick = () => {
+    renderCheckinList();
+    overlayCheckin.classList.add('open');
+    if (document.activeElement) document.activeElement.blur();
+  };
+  document.getElementById('btn-checkin-close').onclick = () => overlayCheckin.classList.remove('open');
+  document.getElementById('checkin-search').oninput = renderCheckinList;
+
+  function renderCheckinList() {
+    const container = document.getElementById('checkin-list');
+    const filter = document.getElementById('checkin-search').value.toLowerCase();
+    container.innerHTML = '';
+
+    const dateKey = fechaInput.value;
+    const currentRes = window.reservasData[dateKey] || {};
+
+    let list = [];
+    Object.keys(currentRes).forEach(mId => {
+      const r = currentRes[mId];
+      if (r && r.cliente) list.push({ mId, ...r });
+    });
+
+    let filtered = list.filter(r => r.cliente.toLowerCase().includes(filter));
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="color:var(--text-low);text-align:center;padding:20px;">No hay reservaciones para esta fecha.</div>';
+      return;
+    }
+
+    filtered.forEach(item => {
+      let mesaText = 'Sin Mesa Asignada';
+      const dayLayout = window.layoutsData[dateKey];
+      if (dayLayout) {
+        ['PB','PA'].forEach(p => {
+          if (dayLayout[p]) {
+            const m = dayLayout[p].find(x => x.id === item.mId);
+            if (m) mesaText = `${p} - ${m.nombre}`;
+          }
+        });
+      }
+
+      const row = document.createElement('div');
+      row.className = 'preset-slot';
+      row.style.marginBottom = '6px';
+      row.innerHTML = `
+        <div class="preset-info">
+          <span class="preset-title">${item.cliente} (${item.personas || 0} pax)</span>
+          <span class="preset-status">Mesa: <b>${mesaText}</b> | Estado: <b style="color:var(--neon-amber)">${item.estado}</b></span>
+        </div>
+        <button class="btn primary" style="padding:6px 12px;font-size:11px;">Ocupar Mesa</button>
+      `;
+
+      row.querySelector('button').onclick = () => {
+        overlayCheckin.classList.remove('open');
+        if (item.mId && !item.mId.startsWith('res_batch_') && !item.mId.startsWith('unassigned_')) {
+          openModal(item.mId);
+        } else {
+          alert('Selecciona una mesa en el mapa para asignar a ' + item.cliente);
+          window.pendingAssignClient = item;
+        }
+      };
+
+      container.appendChild(row);
+    });
+  }
+
+  function renderWaiters() {
+    const container = document.getElementById('waiters-list');
+    container.innerHTML = '';
+
+    const currentLayout = getLayout();
+    const mapWaiters = {};
+
+    currentLayout.forEach(item => {
+      if (item.tipo === 'mesa') {
+        const res = getReserva(item.id);
+        const mesero = res.mesero ? res.mesero.trim() : null;
+        if (mesero) {
+          if (!mapWaiters[mesero]) mapWaiters[mesero] = [];
+          mapWaiters[mesero].push({ item, res });
+        }
+      }
+    });
+
+    const names = Object.keys(mapWaiters);
+    if (names.length === 0) {
+      container.innerHTML = '<div style="color:var(--text-low);font-size:11px;text-align:center;padding:10px;">Sin meseros asignados hoy.</div>';
+      return;
+    }
+
+    names.forEach(name => {
+      const card = document.createElement('div');
+      card.className = 'waiter-card';
+
+      const header = document.createElement('div');
+      header.className = 'waiter-card-header';
+      header.innerHTML = `<span>${name}</span><span>${mapWaiters[name].length} mesas</span>`;
+      card.appendChild(header);
+
+      const tablesDiv = document.createElement('div');
+      tablesDiv.className = 'waiter-tables';
+
+      mapWaiters[name].forEach(obj => {
+        const badge = document.createElement('div');
+        badge.className = 'table-badge ' + (obj.res.estado === 'reservada' ? 'res' : obj.res.estado === 'ocupada' ? 'ocu' : '');
+        const displayName = obj.res.cliente ? `${obj.item.nombre} (${obj.res.cliente})` : obj.item.nombre;
+        badge.textContent = displayName;
+        badge.style.cursor = 'pointer';
+        badge.onclick = () => openModal(obj.item.id);
+        tablesDiv.appendChild(badge);
+      });
+
+      card.appendChild(tablesDiv);
+      container.appendChild(card);
+    });
+  }
+
+  window.renderAllCRM = function() {
+    renderReservationsTable();
+    renderCRMTable();
+  };
+
+  function renderReservationsTable() {
+    const tbody = document.getElementById('reser-tbody');
+    const empty = document.getElementById('reser-empty');
+    const filter = (document.getElementById('reser-search').value || '').toLowerCase();
+    tbody.innerHTML = '';
+
+    let totalReservas = [];
+
+    Object.keys(window.reservasData).forEach(fecha => {
+      Object.keys(window.reservasData[fecha]).forEach(muebleId => {
+        const res = window.reservasData[fecha][muebleId];
+        if (res && (res.cliente || res.estado !== 'disponible')) {
+          let nombreMueble = muebleId.startsWith('unassigned_') || muebleId.startsWith('res_batch_') ? 'Sin Asignar' : muebleId;
+          let planta = 'PB';
+
+          const dayLayout = window.layoutsData[fecha];
+          if (dayLayout) {
+            ['PB','PA'].forEach(p => {
+              if (dayLayout[p]) {
+                const match = dayLayout[p].find(m => m.id === muebleId);
+                if (match) { nombreMueble = match.nombre; planta = p; }
+              }
+            });
+          }
+
+          totalReservas.push({ fecha, planta, muebleId, nombreMueble, res });
+        }
+      });
+    });
+
+    let filtered = totalReservas.filter(r => {
+      const c = (r.res.cliente || '').toLowerCase();
+      const f = (r.fecha || '').toLowerCase();
+      const m = (r.res.mesero || '').toLowerCase();
+      const mesa = (r.nombreMueble || '').toLowerCase();
+      return c.includes(filter) || f.includes(filter) || m.includes(filter) || mesa.includes(filter);
+    });
+
+    if (filtered.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    filtered.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.fecha}</td>
+        <td>${r.planta}</td>
+        <td>${r.nombreMueble}</td>
+        <td>${r.res.cliente || '<em style="color:var(--text-low)">Sin especificar</em>'}</td>
+        <td>${r.res.telefono || '-'}</td>
+        <td>${r.res.personas || 0}</td>
+        <td>${r.res.mesero || '-'}</td>
+        <td><span class="table-badge ${r.res.estado === 'reservada' ? 'res' : r.res.estado === 'ocupada' ? 'ocu' : ''}">${r.res.estado}</span></td>
+        <td>
+          <button class="crm-edit-btn" onclick="window.editReser('${r.fecha}', '${r.planta}', '${r.muebleId}')">Editar</button>
+          <button class="crm-delete-btn" onclick="window.deleteReser('${r.fecha}', '${r.muebleId}')">Eliminar</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  window.editReser = function(fecha, planta, muebleId) {
+    fechaInput.value = fecha;
+    currentFloor = planta;
+
+    document.querySelectorAll('.floor-toggle button').forEach(b => b.classList.remove('active'));
+    document.getElementById(currentFloor === 'PB' ? 'floor-pb' : 'floor-pa').classList.add('active');
+    document.getElementById(currentFloor === 'PB' ? 'float-floor-pb' : 'float-floor-pa').classList.add('active');
+    if (typeof window.club3DSetFloor === 'function') window.club3DSetFloor(currentFloor);
+
+    switchTab('plano');
+    renderFurniture();
+    if (!muebleId.startsWith('unassigned_') && !muebleId.startsWith('res_batch_')) {
+      openModal(muebleId);
+    }
+  };
+
+  window.deleteReser = function(fecha, muebleId) {
+    if (!confirm('¿Deseas eliminar permanentemente esta reservación?')) return;
+    if (window.reservasData[fecha] && window.reservasData[fecha][muebleId]) {
+      delete window.reservasData[fecha][muebleId];
+      saveReservas();
+      renderFurniture();
+      renderAllCRM();
+    }
+  };
+
+  function renderCRMTable() {
+    const tbody = document.getElementById('crm-tbody');
+    const empty = document.getElementById('crm-empty');
+    const filter = (document.getElementById('crm-search').value || '').toLowerCase();
+    tbody.innerHTML = '';
+
+    let list = window.clientes.filter(c => c.nombre.toLowerCase().includes(filter) || (c.telefono || '').includes(filter));
+
+    if (list.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    list.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${c.nombre}</td>
+        <td>${c.telefono || '-'}</td>
+        <td>${c.visitas}</td>
+        <td>${c.ultimaVisita || '-'}</td>
+        <td>${c.preferencias || '-'}</td>
+        <td>
+          <button class="crm-edit-btn" onclick="window.editClient('${c.id}')">Editar</button>
+          <button class="crm-delete-btn" onclick="window.deleteClient('${c.id}')">Eliminar</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  window.editClient = function(id) {
+    const cli = window.clientes.find(c => c.id === id);
+    if (!cli) return;
+    activeClienteId = id;
+    document.getElementById('c-nombre').value = cli.nombre;
+    document.getElementById('c-telefono').value = cli.telefono || '';
+    document.getElementById('c-preferencias').value = cli.preferencias || '';
+    overlayCli.classList.add('open');
+    if (document.activeElement) document.activeElement.blur();
+  };
+
+  window.deleteClient = function(id) {
+    if (!confirm('¿Eliminar registro de cliente del CRM?')) return;
+    window.clientes = window.clientes.filter(c => c.id !== id);
+    saveCli();
+    renderCRMTable();
+  };
+
+  document.getElementById('btn-cli-cancel').onclick = () => overlayCli.classList.remove('open');
+  document.getElementById('btn-cli-save').onclick = () => {
+    const cli = window.clientes.find(c => c.id === activeClienteId);
+    if (cli) {
+      cli.nombre = document.getElementById('c-nombre').value.trim();
+      cli.telefono = document.getElementById('c-telefono').value.trim();
+      cli.preferencias = document.getElementById('c-preferencias').value.trim();
+      saveCli();
+      renderCRMTable();
+    }
+    overlayCli.classList.remove('open');
+  };
+
+  document.getElementById('reser-search').addEventListener('input', renderReservationsTable);
+  document.getElementById('crm-search').addEventListener('input', renderCRMTable);
+
+  function switchTab(tab) {
+    if (tab === 'plano') {
+      document.getElementById('view-plano').style.display = 'flex';
+      document.getElementById('view-crm').classList.remove('active');
+      document.getElementById('tab-plano').classList.add('active');
+      document.getElementById('tab-crm').classList.remove('active');
+      renderFurniture();
+    } else {
+      document.getElementById('view-plano').style.display = 'none';
+      document.getElementById('view-crm').classList.add('active');
+      document.getElementById('tab-plano').classList.remove('active');
+      document.getElementById('tab-crm').classList.add('active');
+      renderAllCRM();
+    }
+  }
+
+  document.getElementById('tab-plano').onclick = () => switchTab('plano');
+  document.getElementById('tab-crm').onclick = () => switchTab('crm');
+
+  function changeFloor(floor) {
+    currentFloor = floor;
+    document.querySelectorAll('.floor-toggle button').forEach(b => b.classList.remove('active'));
+    if (floor === 'PB') {
+      document.getElementById('floor-pb').classList.add('active');
+      document.getElementById('float-floor-pb').classList.add('active');
+    } else {
+      document.getElementById('floor-pa').classList.add('active');
+      document.getElementById('float-floor-pa').classList.add('active');
+    }
+    selectedIds.clear();
+    renderFurniture();
+    if (typeof window.club3DSetFloor === 'function') window.club3DSetFloor(floor);
+  }
+
+  document.getElementById('floor-pb').onclick = () => changeFloor('PB');
+  document.getElementById('floor-pa').onclick = () => changeFloor('PA');
+  document.getElementById('float-floor-pb').onclick = () => changeFloor('PB');
+  document.getElementById('float-floor-pa').onclick = () => changeFloor('PA');
+
+  fechaInput.addEventListener('change', () => {
+    selectedIds.clear();
+    renderFurniture();
+    renderAllCRM();
+  });
+
+  if (window.migrarNombresLegacy()) {
+    saveLayouts();
+    savePresets();
+  }
+
+  renderFurniture();
+  renderAllCRM();
+  </script>
+
+  <script>
+  // ============================================================================
+  // VISTA 3D REAL DEL ANTRO — motor WebGL con Three.js
+  // Sustituye por completo el viejo truco de "transform: rotateX/rotateZ" sobre
+  // el DOM (que era lento porque re-pintaba cientos de divs con box-shadow/filter
+  // cada frame). Aquí se dibuja una escena real en GPU: piso reflejante con
+  // rejilla neón, cristalera, pantalla LED, cabina DJ, mezzanine con barandal
+  // de cristal y tubos de neón — igual que la referencia — y cada mesa/sillón
+  // del plano actual se coloca en 3D según su posición real (x%, y%).
+  // ============================================================================
+  (function Club3DEngine() {
+    let renderer, scene, camera, clock;
+    let floorGroup, furnitureGroup;
+    let flickerLights = [];
+    const isMobileGPU = /Android|iPad|iPhone|iPod|Tablet|Mobi/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    let raf = null;
+    let built = false;
+    let lastNightState = null;
+    let lastFrameT = 0;
+    let frameCounter = 0;
+
+    const container = document.getElementById('view3d-container');
+    const canvasEl3d = document.getElementById('view3d-canvas');
+    const loadingEl = document.getElementById('view3d-loading');
+    const FLOOR_W = 48, FLOOR_D = 46;
+    // Se exponen para que el plano 2D pueda dibujar el límite exacto del piso 3D
+    // (mismo cálculo que pctToWorld/floor.position.z, sin duplicar números mágicos por separado).
+    window.CLUB3D_BOUNDS = { FLOOR_W, FLOOR_D, FLOOR_Z_OFFSET: 4, PCT_Z_OFFSET: 6 };
+
+    // --- Cámara: orbita + "deslizarse" (pan) libremente por el lugar ---
+    // 1 dedo / click izq = orbitar. 2 dedos / click der / Shift+drag = deslizar (pan) el punto de mira.
+    // Rueda / pellizco = acercar-alejar. Además hay un joystick táctil para moverse caminando.
+    const cam = { theta: 0.78, phi: 1.08, radius: 30, target: new THREE.Vector3(0, 6.5, 3) };
+    let dragging = false, panning = false, lastX = 0, lastY = 0;
+    let pinchDist = null;
+    const moveState = { fwd: 0, side: 0 };
+
+    // --- Modo Edición 3D: arrastrar mesas/elementos con raycasting, solo si está activo ---
+    const raycaster3d = new THREE.Raycaster();
+    const mouseNDC3d = new THREE.Vector2();
+    const floorPlane3d = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    let furnitureDragTarget = null;
+    let furnitureDragItem = null;
+
+    function pickFurnitureAt(clientX, clientY) {
+      if (!furnitureGroup) return null;
+      const rect = canvasEl3d.getBoundingClientRect();
+      mouseNDC3d.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      mouseNDC3d.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster3d.setFromCamera(mouseNDC3d, camera);
+      const hits = raycaster3d.intersectObjects(furnitureGroup.children, true);
+      if (!hits.length) return null;
+      let obj = hits[0].object;
+      while (obj && !obj.userData.itemId && obj.parent) obj = obj.parent;
+      if (!obj || !obj.userData.itemId) return null;
+      let list = [];
+      try { list = (typeof getLayout === 'function') ? getLayout() : []; } catch (e) {}
+      const item = list.find(it => it.id === obj.userData.itemId);
+      if (!item) return null;
+      return { group: obj, item };
+    }
+
+    function clampCam() {
+      cam.phi = Math.min(Math.max(cam.phi, 0.35), 1.52);
+      cam.radius = Math.min(Math.max(cam.radius, 6), 95);
+      cam.target.x = Math.min(Math.max(cam.target.x, -FLOOR_W * 1.1), FLOOR_W * 1.1);
+      cam.target.y = Math.min(Math.max(cam.target.y, 1.2), 18);
+      cam.target.z = Math.min(Math.max(cam.target.z, -FLOOR_D * 0.7), FLOOR_D * 0.7);
+    }
+
+    function updateCameraFromOrbit() {
+      clampCam();
+      const x = cam.target.x + cam.radius * Math.sin(cam.phi) * Math.sin(cam.theta);
+      const y = cam.target.y + cam.radius * Math.cos(cam.phi);
+      const z = cam.target.z + cam.radius * Math.sin(cam.phi) * Math.cos(cam.theta);
+      camera.position.set(x, y, z);
+      camera.lookAt(cam.target);
+    }
+
+    // Vectores planos de la cámara (para caminar/pan sin inclinarse hacia arriba/abajo)
+    function camForward() {
+      return new THREE.Vector3(Math.sin(cam.theta), 0, Math.cos(cam.theta)).multiplyScalar(-1);
+    }
+    function camRight() {
+      // OJO: el vector "derecha" estaba matemáticamente invertido (era -derecha real),
+      // por eso el pan/deslizamiento y el joystick de caminar se sentían "al revés"
+      // según hacia dónde estuvieras mirando. Con signo correcto, "derecha" es siempre
+      // tu derecha real en pantalla, sin importar el ángulo de la cámara.
+      const f = camForward();
+      return new THREE.Vector3(-f.z, 0, f.x);
+    }
+
+    function onPointerDown(e) {
+      const p = e.touches ? e.touches[0] : e;
+      lastX = p.clientX; lastY = p.clientY;
+      if (e.touches && e.touches.length === 2) {
+        pinchDist = touchDist(e.touches);
+        panning = true; dragging = false;
+        return;
+      }
+      if (window.editModeActive) {
+        const hit = pickFurnitureAt(p.clientX, p.clientY);
+        if (hit) {
+          furnitureDragTarget = hit.group;
+          furnitureDragItem = hit.item;
+          container.classList.add('dragging-furniture-3d');
+          return;
+        }
+      }
+      dragging = true; panning = (e.button === 2 || e.shiftKey);
+      container.classList.add('dragging');
+    }
+    function onPointerMove(e) {
+      if (furnitureDragTarget) {
+        const p = e.touches ? e.touches[0] : e;
+        const rect = canvasEl3d.getBoundingClientRect();
+        mouseNDC3d.x = ((p.clientX - rect.left) / rect.width) * 2 - 1;
+        mouseNDC3d.y = -((p.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster3d.setFromCamera(mouseNDC3d, camera);
+        const point = new THREE.Vector3();
+        if (raycaster3d.ray.intersectPlane(floorPlane3d, point)) {
+          if (typeof currentFloor !== 'undefined' && currentFloor === 'PA' && window.CLUB3D_PA_PLATFORM) {
+            clampToPAPlatform(point);
+          }
+          furnitureDragTarget.position.x = point.x;
+          furnitureDragTarget.position.z = point.z;
+          const xPct = (point.x / FLOOR_W + 0.5) * 100;
+          const yPct = ((point.z - 6 + FLOOR_D * 0.5) / FLOOR_D) * 100;
+          furnitureDragItem.x = Math.min(100, Math.max(0, xPct));
+          furnitureDragItem.y = Math.min(100, Math.max(0, yPct));
+        }
+        return;
+      }
+      if (e.touches && e.touches.length === 2) {
+        const d = touchDist(e.touches);
+        if (pinchDist) cam.radius *= pinchDist / d;
+        pinchDist = d;
+        const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const dx = mx - lastX, dy = my - lastY;
+        lastX = mx; lastY = my;
+        const right = camRight(), fwd = camForward();
+        cam.target.addScaledVector(right, -dx * 0.045);
+        cam.target.addScaledVector(fwd, dy * 0.045);
+        updateCameraFromOrbit();
+        return;
+      }
+      if (!dragging && !panning) return;
+      const p = e.touches ? e.touches[0] : e;
+      const dx = p.clientX - lastX, dy = p.clientY - lastY;
+      lastX = p.clientX; lastY = p.clientY;
+      if (panning) {
+        const right = camRight(), fwd = camForward();
+        cam.target.addScaledVector(right, -dx * 0.045);
+        cam.target.addScaledVector(fwd, dy * 0.045);
+      } else {
+        cam.theta -= dx * 0.0055;
+        cam.phi -= dy * 0.0045;
+      }
+      updateCameraFromOrbit();
+    }
+    function onPointerUp() {
+      if (furnitureDragTarget) {
+        furnitureDragTarget = null;
+        furnitureDragItem = null;
+        container.classList.remove('dragging-furniture-3d');
+        if (typeof saveLayouts === 'function') saveLayouts();
+        if (typeof window.renderFurniture === 'function') window.renderFurniture();
+        return;
+      }
+      dragging = false; panning = false; pinchDist = null; container.classList.remove('dragging');
+    }
+    function touchDist(t) { const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.hypot(dx, dy); }
+    function onWheel(e) {
+      e.preventDefault();
+      cam.radius += e.deltaY * 0.02;
+      updateCameraFromOrbit();
+    }
+    function onKeyDown(e) {
+      if (!container.classList.contains('open')) return;
+      if (e.key === 'w' || e.key === 'ArrowUp') moveState.fwd = 1;
+      if (e.key === 's' || e.key === 'ArrowDown') moveState.fwd = -1;
+      if (e.key === 'a' || e.key === 'ArrowLeft') moveState.side = -1;
+      if (e.key === 'd' || e.key === 'ArrowRight') moveState.side = 1;
+    }
+    function onKeyUp(e) {
+      if (['w', 'ArrowUp', 's', 'ArrowDown'].includes(e.key)) moveState.fwd = 0;
+      if (['a', 'ArrowLeft', 'd', 'ArrowRight'].includes(e.key)) moveState.side = 0;
+    }
+
+    function neonMaterial(color, intensity) {
+      return new THREE.MeshStandardMaterial({
+        color: color, emissive: color, emissiveIntensity: intensity != null ? intensity : 1.6,
+        metalness: 0.2, roughness: 0.3
+      });
+    }
+
+    function glassMaterial(color) {
+      return new THREE.MeshPhysicalMaterial({
+        color: color || 0x8fb4d9,
+        transparent: true,
+        opacity: 0.2,
+        metalness: 0,
+        roughness: 0.035,
+        transmission: 0.92,
+        thickness: 0.5,
+        ior: 1.52,
+        reflectivity: 0.8,
+        clearcoat: 1,
+        clearcoatRoughness: 0.06,
+        envMapIntensity: 1.35,
+        side: THREE.DoubleSide
+      });
+    }
+
+    // Ciclo día/noche real: entre 19:00 y 06:59 (hora del dispositivo) el
+    // cielo tras la cristalera se oscurece, pero la iluminación del antro
+    // (neones, pantalla, DJ) se mantiene siempre viva — nunca se apaga el club.
+    function computeIsNight() {
+      const h = new Date().getHours();
+      return h >= 19 || h < 7;
+    }
+
+    function buildSkyTexture(isNight) {
+      const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 0, 512);
+      if (isNight) {
+        g.addColorStop(0, '#03050c'); g.addColorStop(0.4, '#060a18'); g.addColorStop(0.72, '#0c1526'); g.addColorStop(1, '#050810');
+      } else {
+        g.addColorStop(0, '#0b1a2c'); g.addColorStop(0.45, '#1c3a56'); g.addColorStop(0.75, '#3a5a72'); g.addColorStop(1, '#0e1620');
+      }
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 512, 512);
+
+      if (isNight) {
+        // Resplandor cálido de la ciudad en el horizonte (sin estrellas: se veían
+        // como puntos sueltos poco realistas sobre el cristal grande)
+        const glow = ctx.createLinearGradient(0, 260, 0, 340);
+        glow.addColorStop(0, 'rgba(255,183,3,0)'); glow.addColorStop(1, 'rgba(255,140,60,0.16)');
+        ctx.fillStyle = glow; ctx.fillRect(0, 260, 512, 80);
+      }
+
+      ctx.fillStyle = isNight ? 'rgba(10,14,22,0.55)' : 'rgba(255,255,255,0.06)';
+      for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        const y = 300 + i * 22;
+        ctx.moveTo(0, y);
+        for (let x = 0; x <= 512; x += 32) ctx.lineTo(x, y + Math.sin(x * 0.02 + i) * 14);
+        ctx.lineTo(512, 512); ctx.lineTo(0, 512); ctx.closePath(); ctx.fill();
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    function buildScreenTexture(label1, label2) {
+      const c = document.createElement('canvas'); c.width = 512; c.height = 288;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#050b12'; ctx.fillRect(0, 0, 512, 288);
+      const grd = ctx.createRadialGradient(256, 150, 10, 256, 150, 280);
+      grd.addColorStop(0, 'rgba(29,233,182,0.6)'); grd.addColorStop(0.5, 'rgba(168,85,247,0.18)'); grd.addColorStop(1, 'rgba(6,214,160,0)');
+      ctx.fillStyle = grd; ctx.fillRect(0, 0, 512, 288);
+      // Túnel de marcos concéntricos alternando cian / rosa, como en la pantalla de referencia
+      const tunnelColors = ['rgba(29,233,182,0.95)', 'rgba(255,46,196,0.85)'];
+      for (let i = 0; i < 5; i++) {
+        const pad = 26 + i * 30;
+        ctx.strokeStyle = tunnelColors[i % 2];
+        ctx.lineWidth = 3.5;
+        ctx.strokeRect(pad, pad * 0.62, 512 - pad * 2, 288 - pad * 1.15);
+      }
+      ctx.fillStyle = 'rgba(29,233,182,0.95)';
+      ctx.font = 'bold 46px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(label1 || 'CRYPTO', 256, 150);
+      ctx.font = 'bold 15px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillText(label2 || 'BUSINESS SOCIAL CLUB', 256, 174);
+      return new THREE.CanvasTexture(c);
+    }
+
+    function labelSprite(text, color) {
+      const c = document.createElement('canvas'); c.width = 320; c.height = 72;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = 'rgba(5,7,11,0.78)';
+      ctx.roundRect ? ctx.roundRect(0, 8, 320, 56, 14) : ctx.rect(0, 8, 320, 56);
+      ctx.fill();
+      ctx.strokeStyle = color || '#06d6a0'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 26px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(text, 160, 38);
+      const tex = new THREE.CanvasTexture(c);
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+      const spr = new THREE.Sprite(mat);
+      spr.scale.set(2.6, 0.65, 1);
+      spr.renderOrder = 999;
+      return spr;
+    }
+
+    // Sillón/lounge real: asiento bajo + respaldo + dos brazos, tapizado — ya no
+    // reutiliza la forma de mesa (4 patas + tapa), se ve como un sillón de verdad.
+    function buildSillon(x, z, w, d, tone, rojo) {
+      const g = new THREE.Group();
+      // Rojo real y saturado (antes leía como rosa): tapizado carmesí oscuro +
+      // vivo acento rojo puro en vez del magenta pálido que tenía.
+      const upholstery = new THREE.MeshStandardMaterial({ color: rojo ? 0xa10f24 : 0x2a2f3a, metalness: 0.15, roughness: 0.7 });
+      const trim = new THREE.MeshStandardMaterial({ color: rojo ? 0xe6102f : 0x454d5e, metalness: 0.2, roughness: 0.55, emissive: rojo ? 0x4a0410 : 0x000000, emissiveIntensity: rojo ? 0.35 : 0 });
+
+      const seatH = 0.85;
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(w, seatH, d), upholstery);
+      seat.position.y = seatH / 2;
+      g.add(seat);
+
+      // cojín superior (costura visible) un poco más claro
+      const cushion = new THREE.Mesh(new THREE.BoxGeometry(w * 0.94, 0.16, d * 0.9), trim);
+      cushion.position.y = seatH + 0.08;
+      g.add(cushion);
+
+      // respaldo, pegado al borde trasero
+      const backH = 1.15;
+      const back = new THREE.Mesh(new THREE.BoxGeometry(w, backH, d * 0.22), upholstery);
+      back.position.set(0, seatH + backH / 2, -d / 2 + d * 0.11);
+      g.add(back);
+
+      // brazos a los lados
+      const armH = 0.62;
+      [-1, 1].forEach(side => {
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(w * 0.14, armH, d), upholstery);
+        arm.position.set(side * (w / 2 - w * 0.07), armH / 2 + 0.1, 0);
+        g.add(arm);
+      });
+
+      // patas cortas
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x14161c, metalness: 0.6, roughness: 0.4 });
+      const legGeo = new THREE.CylinderGeometry(0.045, 0.05, 0.18, 6);
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+        const leg = new THREE.Mesh(legGeo, legMat);
+        leg.position.set(sx * (w / 2 - 0.15), 0.09, sz * (d / 2 - 0.15));
+        g.add(leg);
+      });
+
+      g.position.set(x, 0, z);
+      return g;
+    }
+
+    function buildStool(x, z, w, d, tone) {
+      const g = new THREE.Group();
+      const seatH = 2.0;
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x11141c, metalness: 0.75, roughness: 0.3 });
+      const legGeo = new THREE.CylinderGeometry(0.05, 0.05, seatH, 6);
+      const inset = 0.32;
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+        const leg = new THREE.Mesh(legGeo, legMat);
+        leg.position.set(sx * (w / 2 - inset), seatH / 2, sz * (d / 2 - inset));
+        g.add(leg);
+      });
+      // Sin luz dinámica por mesa (sale carísimo en tablet con 30-40 mesas):
+      // el brillo se logra 100% con material emissivo, que es prácticamente gratis en GPU.
+      const topMat = neonMaterial(tone || 0xf5f8ff, 2.2);
+      const top = new THREE.Mesh(new THREE.BoxGeometry(w, 0.16, d), topMat);
+      top.position.y = seatH + 0.08;
+      g.add(top);
+      g.position.set(x, 0, z);
+      return g;
+    }
+
+    // Formas específicas por tipo de mobiliario/decoración, para que lo que se
+    // arrastra en el plano 2D se vea reconocible en 3D (no una caja genérica).
+    function buildDecor(tipo, w, d) {
+      const g = new THREE.Group();
+      const darkMat = new THREE.MeshStandardMaterial({ color: 0x1a1e29, metalness: 0.45, roughness: 0.5 });
+
+      if (tipo === 'bocina') {
+        const body = new THREE.Mesh(new THREE.BoxGeometry(w, 3.2, d), new THREE.MeshStandardMaterial({ color: 0x14161c, metalness: 0.55, roughness: 0.45 }));
+        body.position.y = 1.6; g.add(body);
+        for (let i = 0; i < 3; i++) {
+          const ring = new THREE.Mesh(new THREE.TorusGeometry(Math.min(w, d) * 0.28, 0.05, 8, 20), neonMaterial(0x39ffe0, 1.4));
+          ring.position.set(0, 0.7 + i * 1.05, d / 2 + 0.02);
+          g.add(ring);
+        }
+      } else if (tipo === 'dj') {
+        const booth = new THREE.Mesh(new THREE.BoxGeometry(w, 2.4, d), new THREE.MeshStandardMaterial({ color: 0x101319, metalness: 0.5, roughness: 0.4 }));
+        booth.position.y = 1.2; g.add(booth);
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.12, d + 0.1), neonMaterial(0x06d6a0, 1.8));
+        strip.position.y = 2.42; g.add(strip);
+        const deck = new THREE.Mesh(new THREE.BoxGeometry(w * 0.7, 0.15, d * 0.5), new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.7, roughness: 0.2 }));
+        deck.position.set(0, 2.5, 0); g.add(deck);
+      } else if (tipo === 'pantalla') {
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(w, d * 2.6, 0.25), new THREE.MeshStandardMaterial({ color: 0x05070b, metalness: 0.5, roughness: 0.4 }));
+        frame.position.y = d * 1.3 + 1.4; g.add(frame);
+        const tex = buildScreenTexture();
+        const screen = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.94, d * 2.4), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, fog: false }));
+        screen.position.set(0, d * 1.3 + 1.4, 0.14); g.add(screen);
+        const pl = new THREE.PointLight(0x06d6a0, 1.6, 12, 2);
+        pl.position.set(0, d * 1.3 + 1.4, 1.5); g.add(pl);
+      } else if (tipo === 'barra') {
+        const counter = new THREE.Mesh(new THREE.BoxGeometry(w, 1.3, d), new THREE.MeshStandardMaterial({ color: 0x232838, metalness: 0.4, roughness: 0.5 }));
+        counter.position.y = 0.65; g.add(counter);
+        const rim = new THREE.Mesh(new THREE.BoxGeometry(w + 0.06, 0.06, d + 0.06), neonMaterial(0xf3ba2f, 1.5));
+        rim.position.y = 1.33; g.add(rim);
+      } else if (tipo === 'cristal') {
+        const glass = new THREE.Mesh(new THREE.BoxGeometry(w, 2.2, Math.max(d, 0.15)), glassMaterial(0x9fd3ff));
+        glass.position.y = 1.1; g.add(glass);
+      } else {
+        // entrada / salida / wc / pasillo / caja / escaleras -> placa señalética en el piso
+        const plate = new THREE.Mesh(new THREE.BoxGeometry(w, 0.08, d), darkMat);
+        plate.position.y = 0.04; g.add(plate);
+        const edgeColor = { entrada: 0x06d6a0, salida: 0xef476f, wc: 0x3b82f6, pasillo: 0x64748b, caja: 0xf3ba2f, escaleras: 0xa855f7 }[tipo] || 0xffffff;
+        const rim = new THREE.Mesh(new THREE.BoxGeometry(w + 0.04, 0.02, d + 0.04), neonMaterial(edgeColor, 1.2));
+        rim.position.y = 0.09; g.add(rim);
+      }
+      return g;
+    }
+
+    function pctToWorld(xPct, yPct) {
+      const worldX = (xPct / 100 - 0.5) * FLOOR_W;
+      const worldZ = (yPct / 100) * FLOOR_D - FLOOR_D * 0.5 + 6;
+      return { x: worldX, z: worldZ };
+    }
+    function worldToPct(x, z) {
+      return { x: (x / FLOOR_W + 0.5) * 100, y: ((z - 6 + FLOOR_D * 0.5) / FLOOR_D) * 100 };
+    }
+
+    // Restringe un punto (x,z en mundo) al suelo real de la plataforma de PA
+    // (pasillo único a lo largo del muro lateral derecho): si cae fuera de
+    // ese pasillo, lo empuja al borde más cercano en vez de dejarlo
+    // "flotando" sobre el vacío/hueco central.
+    function clampToPAPlatform(point) {
+      const P = window.CLUB3D_PA_PLATFORM;
+      if (!P) return point;
+      const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+      point.x = clamp(point.x, P.rightWing.xMin, P.rightWing.xMax);
+      point.z = clamp(point.z, P.rightWing.zMin, P.rightWing.zMax);
+      return point;
+    }
+
+    // Versión en % (0-100, mismo sistema de coordenadas del plano 2D) para
+    // que el editor 2D pueda restringir ahí mismo el arrastre en Planta Alta.
+    window.clampPAPlatformPct = function (xPct, yPct) {
+      const w = pctToWorld(xPct, yPct);
+      const point = { x: w.x, z: w.z };
+      clampToPAPlatform(point);
+      return worldToPct(point.x, point.z);
+    };
+
+    function buildFurnitureFromLayout() {
+      if (furnitureGroup) { scene.remove(furnitureGroup); }
+      furnitureGroup = new THREE.Group();
+      let list = [];
+      try { list = (typeof getLayout === 'function') ? getLayout() : []; } catch (e) { list = []; }
+
+      // Colores de estado más claros y saturados que antes (disponible = verde
+      // franco, no verde-azulado; reservada = amarillo, no ámbar-naranja;
+      // ocupada = rojo fuerte, no coral rosado) — mismo criterio en toda la app.
+      const ESTADO_COLOR = { disponible: 0x2be27a, reservada: 0xffd23f, ocupada: 0xff1f3d };
+
+      list.forEach(item => {
+        const pos = pctToWorld(item.x, item.y);
+        const wScale = Math.max(0.02, (item.anchoPx || 50) / 100) * (FLOOR_W / 10);
+        const dScale = Math.max(0.02, (item.altoPx || 50) / 100) * (FLOOR_D / 12);
+        let mesh;
+        if (item.tipo === 'mesa' || item.tipo === 'mesa_doble') {
+          let res = { estado: 'disponible' };
+          try { if (typeof getReserva === 'function') res = getReserva(item.id); } catch (e) {}
+          const estado = res.estado || 'disponible';
+          const tone = ESTADO_COLOR[estado] || ESTADO_COLOR.disponible;
+          mesh = buildStool(pos.x, pos.z, Math.min(wScale, 3.2), Math.min(dScale, 3.2), tone);
+        } else if (item.tipo === 'sillon') {
+          mesh = buildSillon(pos.x, pos.z, Math.min(wScale, 2.6), Math.min(dScale, 2.6), 0xffe0e0, item.colorVariante === 'rojo');
+        } else if (item.tipo) {
+          // Las bocinas se limitan a un tamaño realista de gabinete de audio;
+          // el resto de la decoración fija (DJ, pantalla, barra, cristal...)
+          // conserva un tope mayor porque son piezas legítimamente más grandes.
+          const decorCap = item.tipo === 'bocina' ? 2.2 : 6;
+          mesh = buildDecor(item.tipo, Math.min(wScale, decorCap), Math.min(dScale, decorCap));
+          mesh.position.set(pos.x, 0, pos.z);
+        }
+        if (mesh) {
+          mesh.rotation.y = ((item.rotacion || 0) * Math.PI) / 180;
+          mesh.userData.itemId = item.id; // para poder ubicarlo de vuelta al arrastrar en Modo Edición 3D
+          furnitureGroup.add(mesh);
+        }
+      });
+      scene.add(furnitureGroup);
+    }
+
+    // ============================================================
+    // CONMUTACIÓN PB / PA — los botones de piso deben alternar tanto la
+    // capa de mesas (cada piso tiene su propio layout, vía getLayout())
+    // como el encuadre de cámara: vista amplia y centrada para Planta Baja,
+    // vista cercana a la plataforma elevada para Planta Alta.
+    // ============================================================
+    window.club3DSetFloor = function (floor) {
+      if (!built) return; // la escena aún no existe; se construirá con el layout correcto al abrir
+      buildFurnitureFromLayout();
+      if (floor === 'PA') {
+        cam.target.set(FLOOR_W / 2 + 8.5, mezzYRef(), 6);
+        cam.radius = 26;
+        cam.theta = 0.95;
+        cam.phi = 1.05;
+      } else {
+        cam.target.set(0, 6.5, 3);
+        cam.radius = 30;
+        cam.theta = 0.78;
+        cam.phi = 1.08;
+      }
+      updateCameraFromOrbit();
+    };
+    // mezzY solo existe dentro de buildScene(); se guarda una copia accesible
+    // para que club3DSetFloor pueda apuntar la cámara a la altura correcta de PA.
+    let mezzYCache = 12;
+    function mezzYRef() { return mezzYCache + 2.5; }
+
+    function buildScene() {
+      const nightNow = computeIsNight();
+
+      // Si ya existía una escena (p. ej. se reconstruye por cambio de día/noche),
+      // se libera el renderer anterior primero para no acumular contextos WebGL.
+      if (renderer) {
+        renderer.dispose();
+        renderer.forceContextLoss && renderer.forceContextLoss();
+      }
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(nightNow ? 0x030509 : 0x06070c);
+      // Niebla más ligera que antes: se mantenía demasiado oscuro en varias
+      // zonas del antro. Con menos densidad, el brillo neón llega más lejos.
+      scene.fog = new THREE.FogExp2(nightNow ? 0x03040a : 0x05060d, isMobileGPU ? 0.018 : 0.013);
+
+      camera = new THREE.PerspectiveCamera(55, 1, 0.1, isMobileGPU ? 160 : 400);
+      updateCameraFromOrbit();
+
+      renderer = new THREE.WebGLRenderer({ canvas: canvasEl3d, antialias: !isMobileGPU, powerPreference: 'high-performance', stencil: false, depth: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobileGPU ? 1 : 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace || THREE.sRGBEncoding;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.7;
+
+      // Entorno de reflejo simple para que el cristal físico (transmission/clearcoat)
+      // tenga algo real que reflejar — sin esto se ve plano aunque el material sea bueno.
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const envScene = new THREE.Scene();
+      envScene.background = new THREE.Color(nightNow ? 0x0a0e18 : 0x1a2438);
+      const envLight1 = new THREE.Mesh(new THREE.SphereGeometry(60, 8, 8), new THREE.MeshBasicMaterial({ color: 0x1de9b6, side: THREE.BackSide }));
+      envLight1.position.set(0, 30, -30);
+      envLight1.scale.set(0.3, 0.3, 0.3);
+      envScene.add(envLight1);
+      scene.environment = pmrem.fromScene(envScene, 0.04).texture;
+      pmrem.dispose();
+
+      flickerLights = [];
+
+      // --- Iluminación mucho más rica pero barata: pocas luces reales + materiales
+      // emisivos para todo el resto del brillo neón (así se ve espectacular y sigue fluido).
+      // Subida general de intensidad: antes se veía muy oscuro en varias zonas del piso. ---
+      scene.add(new THREE.AmbientLight(0x4a5f8a, nightNow ? 1.7 : 2.1));
+      const hemi = new THREE.HemisphereLight(0x88a6d9, 0x11141f, nightNow ? 1.0 : 1.25);
+      scene.add(hemi);
+
+      // Luz de relleno cenital suave para que el piso y los pasillos entre
+      // mesas nunca se vean completamente negros, incluso lejos del escenario.
+      const fillLight = new THREE.PointLight(0x8fb4ff, 1.4, 70, 1.6);
+      fillLight.position.set(0, 20, 4);
+      scene.add(fillLight);
+      const fillLight2 = new THREE.PointLight(0xffffff, 0.8, 60, 1.8);
+      fillLight2.position.set(0, 14, 16);
+      scene.add(fillLight2);
+
+      const screenLight = new THREE.PointLight(0x1de9b6, 6.2, 50, 2);
+      screenLight.position.set(0, 9, -20);
+      scene.add(screenLight);
+      flickerLights.push(screenLight);
+
+      // Acentos de neón (número reducido a propósito: cada PointLight adicional
+      // cuesta caro en GPUs de tablet; el resto del "glow" lo dan los materiales
+      // emissive de tubos/rejilla/mesas, que son casi gratis).
+      const accentColors = [0xff2ec4, 0x39ff8a, 0x2ecbff, 0xffb703];
+      const accentCount = isMobileGPU ? 4 : 6;
+      for (let i = 0; i < accentCount; i++) {
+        const ang = (i / accentCount) * Math.PI * 2;
+        const c = accentColors[i % accentColors.length];
+        const pl = new THREE.PointLight(c, 2.3, 30, 2);
+        pl.position.set(Math.sin(ang) * FLOOR_W * 0.5, 15, Math.cos(ang) * FLOOR_D * 0.4 - 2);
+        pl.userData.baseIntensity = 2.3;
+        scene.add(pl);
+        flickerLights.push(pl);
+      }
+
+      floorGroup = new THREE.Group();
+
+      // --- Piso reflejante oscuro con rejilla neón ---
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x0a0d13, metalness: 0.6, roughness: 0.15 });
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(FLOOR_W, FLOOR_D), floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.z = 4;
+      floorGroup.add(floor);
+
+      const grid1 = new THREE.GridHelper(FLOOR_W, 20, 0x06d6a0, 0x0d3b30);
+      grid1.position.y = 0.02; grid1.position.z = 4;
+      grid1.material.opacity = 0.4; grid1.material.transparent = true;
+      floorGroup.add(grid1);
+      const grid2 = new THREE.GridHelper(FLOOR_D, 22, 0xffb703, 0x3a2c0d);
+      grid2.rotation.y = Math.PI / 2;
+      grid2.position.set(0, 0.021, 4);
+      grid2.material.opacity = 0.16; grid2.material.transparent = true;
+      floorGroup.add(grid2);
+
+      // ============================================================
+      // ALAS LATERALES SIMÉTRICAS: el piso ahora se extiende exactamente
+      // la misma distancia a cada lado, hasta pegar justo con el cristal
+      // (antes la derecha se salía mucho más que la izquierda y quedaba
+      // descuadrado). Solo el ala derecha tiene el mezzanine elevado.
+      // ============================================================
+      const WING_SPAN = 17;                       // ancho de cada ala, igual en ambos lados
+      // CORRECCIÓN DE HUECOS: antes las alas laterales (WING_Z_LEN=FLOOR_D+6,
+      // centradas en WING_Z=-1) no coincidían en profundidad/centro con el piso
+      // central (FLOOR_D=46, centrado en z=4). Ese desfase dejaba esquinas y
+      // franjas transparentes en la unión piso-muro (las "fugas" reportadas).
+      // Ahora ambas alas usan EXACTAMENTE el mismo rango en Z que el piso
+      // central, por lo que quedan perfectamente selladas, sin huecos.
+      const WING_Z_LEN = FLOOR_D;                  // largo (mismo en ambas alas) = mismo que el piso central
+      const WING_Z = 4;                            // centro en Z = mismo centro que el piso central
+      const RIGHT_GLASS_X = FLOOR_W / 2 + WING_SPAN;
+      const LEFT_GLASS_X = -RIGHT_GLASS_X;
+      const mullionMat = new THREE.MeshStandardMaterial({ color: 0x14181f, metalness: 0.6, roughness: 0.4 });
+      const skyTex = buildSkyTexture(nightNow);
+
+      // --- Ala izquierda: piso llano hasta el cristal (planta baja, sin mezzanine) ---
+      const leftWingX = -(FLOOR_W / 2 + WING_SPAN / 2);
+      const leftFill = new THREE.Mesh(new THREE.PlaneGeometry(WING_SPAN, WING_Z_LEN), floorMat);
+      leftFill.rotation.x = -Math.PI / 2;
+      leftFill.position.set(leftWingX, 0, WING_Z);
+      floorGroup.add(leftFill);
+      const leftFillGrid = new THREE.GridHelper(1, 8, 0x06d6a0, 0x0d3b30);
+      leftFillGrid.scale.set(WING_SPAN, 1, WING_Z_LEN);
+      leftFillGrid.position.set(leftWingX, 0.02, WING_Z);
+      leftFillGrid.material.opacity = 0.4; leftFillGrid.material.transparent = true;
+      floorGroup.add(leftFillGrid);
+
+      const GLASS_H = 20;
+      const sky = new THREE.Mesh(new THREE.PlaneGeometry(WING_Z_LEN + 8, GLASS_H + 4), new THREE.MeshBasicMaterial({ map: skyTex, fog: false }));
+      sky.position.set(LEFT_GLASS_X - 3.5, GLASS_H / 2 + 1, WING_Z);
+      sky.rotation.y = Math.PI / 2;
+      floorGroup.add(sky);
+
+      const glass = new THREE.Mesh(new THREE.PlaneGeometry(WING_Z_LEN, GLASS_H), glassMaterial(0x8fc7ff));
+      glass.position.set(LEFT_GLASS_X, GLASS_H / 2, WING_Z);
+      glass.rotation.y = Math.PI / 2;
+      floorGroup.add(glass);
+
+      // Divisiones realistas: pocas y espaciadas, como una fachada de vidrio
+      // templado de verdad, ya no una reja densa de barrotes.
+      [-0.5, -0.16, 0.16, 0.5].forEach((frac) => {
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(0.09, GLASS_H, 0.13), mullionMat);
+        bar.position.set(LEFT_GLASS_X, GLASS_H / 2, WING_Z + frac * WING_Z_LEN);
+        floorGroup.add(bar);
+      });
+      const leftCrossbar = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.11, WING_Z_LEN), mullionMat);
+      leftCrossbar.position.set(LEFT_GLASS_X, GLASS_H * 0.55, WING_Z);
+      floorGroup.add(leftCrossbar);
+      [-1, 0, 1].forEach((frac) => {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.24, GLASS_H + 0.4, 0.34), mullionMat);
+        post.position.set(LEFT_GLASS_X, GLASS_H / 2, WING_Z + frac * (WING_Z_LEN / 2.1));
+        floorGroup.add(post);
+      });
+
+      // ============================================================
+      // PLANTA ALTA — PASILLO ÚNICO Y CONTINUO a todo lo largo del muro
+      // lateral derecho (de punta a punta del edificio, tocando ya el
+      // cristal del fondo por sí solo porque WING_Z_LEN = profundidad total
+      // del salón). NO es un "remate"/spur cerrado ni una caja: la
+      // plataforma vuela por fuera, abierta hacia el hueco central que da
+      // a Planta Baja. Solo lleva barandal de cristal en el borde interior
+      // (el que mira hacia adentro del club); el otro borde es la fachada
+      // real de vidrio exterior del edificio (ya construida más abajo).
+      // ============================================================
+      const mezzY = 12;
+      mezzYCache = mezzY;
+      const platformX = FLOOR_W / 2 + WING_SPAN / 2;
+      const platformZ = WING_Z;
+      // AJUSTE FINAL: la plataforma, su barandal, el vidrio exterior y los
+      // muros de apoyo del lado derecho usaban WING_Z_LEN, que queda 1 unidad
+      // corta en cada extremo respecto a los muros reales de la sala
+      // (ROOM_Z_FRONT/ROOM_Z_BACK llevan +1/-1 extra de margen). Esa rendija
+      // de 1 unidad dejaba ver el fondo/niebla de la escena, dando la
+      // impresión de una "pared azul sólida" y de plataforma "mocha".
+      // RIGHT_SIDE_LEN es la longitud unificada que sí llega exactamente
+      // hasta el muro frontal y el muro trasero, sin dejar rendija.
+      const RIGHT_SIDE_LEN = WING_Z_LEN + 2;
+
+      const platformMat = new THREE.MeshStandardMaterial({ color: 0x0c0e13, metalness: 0.5, roughness: 0.5 });
+      const mezzFloorMat = new THREE.MeshStandardMaterial({ color: 0x0e1118, metalness: 0.4, roughness: 0.5 });
+      const railFrameMat = new THREE.MeshStandardMaterial({ color: 0x1c2230, metalness: 0.75, roughness: 0.28 });
+      const steelBeamMat = new THREE.MeshStandardMaterial({ color: 0x2a1a12, metalness: 0.7, roughness: 0.35 });
+
+      // --- Plataforma de Planta Alta: corre de corrido todo el lateral
+      // derecho, desde el fondo (cristales traseros) hasta el frente,
+      // tocando ambos muros sin dejar rendija ---
+      const mezz = new THREE.Mesh(new THREE.BoxGeometry(WING_SPAN, 0.5, RIGHT_SIDE_LEN), platformMat);
+      mezz.position.set(platformX, mezzY, platformZ);
+      floorGroup.add(mezz);
+      const mezzFloor = new THREE.Mesh(new THREE.PlaneGeometry(WING_SPAN, RIGHT_SIDE_LEN), mezzFloorMat);
+      mezzFloor.rotation.x = -Math.PI / 2;
+      mezzFloor.position.set(platformX, mezzY + 0.26, platformZ);
+      floorGroup.add(mezzFloor);
+      const mezzGrid = new THREE.GridHelper(1, 10, 0x2ecbff, 0x14283a);
+      mezzGrid.scale.set(WING_SPAN, 1, RIGHT_SIDE_LEN);
+      mezzGrid.position.set(platformX, mezzY + 0.27, platformZ);
+      mezzGrid.material.opacity = 0.4;
+      mezzGrid.material.transparent = true;
+      floorGroup.add(mezzGrid);
+      const mezzLight = new THREE.PointLight(0x9fd3ff, 1.9, 26, 2);
+      mezzLight.position.set(platformX, mezzY + 3.2, platformZ);
+      floorGroup.add(mezzLight);
+      // Detalle extra: tira de luz ámbar bajo el borde del mezzanine, como remate
+      const mezzUnderStrip = new THREE.Mesh(new THREE.BoxGeometry(WING_SPAN + 0.1, 0.06, 0.06), neonMaterial(0xf3ba2f, 2.0));
+      mezzUnderStrip.position.set(platformX, mezzY - 0.28, platformZ - RIGHT_SIDE_LEN / 2);
+      floorGroup.add(mezzUnderStrip);
+
+      // Se expone el contorno real del suelo de PA para que el arrastre de
+      // mesas/objetos (2D y 3D) quede restringido a la plataforma, nunca al hueco.
+      window.CLUB3D_PA_PLATFORM = {
+        floorW: FLOOR_W, floorD: FLOOR_D,
+        rightWing: { xMin: FLOOR_W / 2, xMax: FLOOR_W / 2 + WING_SPAN, zMin: WING_Z - RIGHT_SIDE_LEN / 2, zMax: WING_Z + RIGHT_SIDE_LEN / 2 }
+      };
+
+      // --- Barandal de cristal templado + marco metálico en el borde
+      // interior (el que mira al hueco central hacia Planta Baja), tal
+      // como se ve en las fotos reales del club: panel de vidrio, remate
+      // metálico superior/inferior y postes espaciados. ---
+      function buildGlassRail(length, cx, cz, rotY) {
+        const g = new THREE.Group();
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(length, 2.2, 0.06), glassMaterial(0xaebfcf));
+        panel.position.y = 1.35; g.add(panel);
+        const topRail = new THREE.Mesh(new THREE.BoxGeometry(length, 0.09, 0.13), railFrameMat);
+        topRail.position.y = 2.5; g.add(topRail);
+        const baseRail = new THREE.Mesh(new THREE.BoxGeometry(length, 0.07, 0.16), railFrameMat);
+        baseRail.position.y = 0.25; g.add(baseRail);
+        const postCount = Math.max(2, Math.round(length / 2.6));
+        for (let i = 0; i <= postCount; i++) {
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.35, 0.09), railFrameMat);
+          post.position.set(-length / 2 + (length / postCount) * i, 1.35, 0);
+          g.add(post);
+        }
+        g.position.set(cx, mezzY + 0.5, cz);
+        g.rotation.y = rotY || 0;
+        return g;
+      }
+      // borde interior de la plataforma, a todo lo largo del muro lateral (mira hacia el hueco/pista)
+      floorGroup.add(buildGlassRail(RIGHT_SIDE_LEN, FLOOR_W / 2 + 0.05, platformZ, Math.PI / 2));
+
+      // Relleno de piso a nivel de calle bajo la plataforma (Planta Baja, bajo el hueco)
+      const groundFill = new THREE.Mesh(new THREE.PlaneGeometry(WING_SPAN, WING_Z_LEN), floorMat);
+      groundFill.rotation.x = -Math.PI / 2;
+      groundFill.position.set(platformX, 0, platformZ);
+      floorGroup.add(groundFill);
+      const groundFillGrid = new THREE.GridHelper(1, 8, 0x06d6a0, 0x0d3b30);
+      groundFillGrid.scale.set(WING_SPAN, 1, WING_Z_LEN);
+      groundFillGrid.position.set(platformX, 0.02, platformZ);
+      groundFillGrid.material.opacity = 0.4;
+      groundFillGrid.material.transparent = true;
+      floorGroup.add(groundFillGrid);
+
+      // --- Muros de cristal EXTERIORES de Planta Alta: vidrio templado
+      // ahumado con vigas de acero oscuras, IGUAL que en las fotos reales
+      // del club — ya sin vista/textura de horizonte hacia el cielo. ---
+      const mezzGlassH = 9.5;
+      const paGlassColor = 0x1c2938; // vidrio ahumado oscuro, no el celeste brillante de antes
+      const mezzGlass = new THREE.Mesh(new THREE.PlaneGeometry(RIGHT_SIDE_LEN, mezzGlassH), glassMaterial(paGlassColor));
+      mezzGlass.position.set(RIGHT_GLASS_X, mezzY + mezzGlassH / 2 + 0.4, WING_Z);
+      mezzGlass.rotation.y = -Math.PI / 2;
+      floorGroup.add(mezzGlass);
+      [-0.5, -0.16, 0.16, 0.5].forEach((frac) => {
+        const mullion = new THREE.Mesh(new THREE.BoxGeometry(0.09, mezzGlassH, 0.13), mullionMat);
+        mullion.position.set(RIGHT_GLASS_X, mezzY + mezzGlassH / 2 + 0.4, WING_Z + frac * RIGHT_SIDE_LEN);
+        floorGroup.add(mullion);
+      });
+      const rightCrossbar = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.11, RIGHT_SIDE_LEN), mullionMat);
+      rightCrossbar.position.set(RIGHT_GLASS_X, mezzY + 0.4 + mezzGlassH * 0.5, WING_Z);
+      floorGroup.add(rightCrossbar);
+      [-1, 0, 1].forEach((frac) => {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.24, mezzGlassH + 0.4, 0.34), mullionMat);
+        post.position.set(RIGHT_GLASS_X, mezzY + mezzGlassH / 2 + 0.4, WING_Z + frac * (RIGHT_SIDE_LEN / 2.1));
+        floorGroup.add(post);
+      });
+      const rightSteelBeam = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, RIGHT_SIDE_LEN), steelBeamMat);
+      rightSteelBeam.position.set(RIGHT_GLASS_X - 0.02, mezzY + 0.4, WING_Z);
+      floorGroup.add(rightSteelBeam);
+
+      // ============================================================
+      // TECHO + PAREDES: encierran el club en un cuarto real. El techo
+      // se calcula a partir del cristal más alto (el de la izquierda,
+      // 20 de altura) más la mitad de esa altura por encima de su límite.
+      // ============================================================
+      const TALLEST_GLASS_H = GLASS_H; // 20 — el más alto de los dos ventanales
+      const RIGHT_GLASS_TOP = mezzY + 0.4 + mezzGlassH;
+      const TOPMOST_GLASS_EDGE = Math.max(GLASS_H, RIGHT_GLASS_TOP);
+      const CEILING_Y = TOPMOST_GLASS_EDGE + TALLEST_GLASS_H / 2;
+
+      const ROOM_Z_FRONT = Math.max(WING_Z + WING_Z_LEN / 2, 4 + FLOOR_D / 2) + 1;
+      const ROOM_Z_BACK = Math.min(WING_Z - WING_Z_LEN / 2, 4 - FLOOR_D / 2) - 1;
+      const ROOM_WIDTH = (RIGHT_GLASS_X - LEFT_GLASS_X) + 1;
+      const ROOM_DEPTH = (ROOM_Z_FRONT - ROOM_Z_BACK) + 1;
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0x0b0d13, metalness: 0.3, roughness: 0.75 });
+
+      const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH), wallMat);
+      ceiling.rotation.x = Math.PI / 2;
+      ceiling.position.set(0, CEILING_Y, WING_Z);
+      floorGroup.add(ceiling);
+      // Refuerzos de techo (vigas) — dan sensación de altura real y rompen la
+      // superficie plana del techo, además de ocultar costuras de textura.
+      for (let i = -1; i <= 1; i++) {
+        const beam = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH, 0.3, 0.4), new THREE.MeshStandardMaterial({ color: 0x090a0e, metalness: 0.4, roughness: 0.6 }));
+        beam.position.set(0, CEILING_Y - 0.2, WING_Z + i * (ROOM_DEPTH / 3));
+        floorGroup.add(beam);
+      }
+
+      // Pared alta sobre el cristal izquierdo (de su límite hasta el techo)
+      const leftUpperWallH = CEILING_Y - GLASS_H;
+      const leftUpperWall = new THREE.Mesh(new THREE.PlaneGeometry(WING_Z_LEN + 2, leftUpperWallH), wallMat);
+      leftUpperWall.position.set(LEFT_GLASS_X, GLASS_H + leftUpperWallH / 2, WING_Z);
+      leftUpperWall.rotation.y = Math.PI / 2;
+      floorGroup.add(leftUpperWall);
+
+      // Pared baja + alta a los lados del cristal del segundo piso (derecha)
+      const rightLowerWallH = mezzY - 0.5;
+      const rightLowerWall = new THREE.Mesh(new THREE.PlaneGeometry(RIGHT_SIDE_LEN, rightLowerWallH), wallMat);
+      rightLowerWall.position.set(RIGHT_GLASS_X, rightLowerWallH / 2, WING_Z);
+      rightLowerWall.rotation.y = -Math.PI / 2;
+      floorGroup.add(rightLowerWall);
+      const rightUpperWallH = CEILING_Y - RIGHT_GLASS_TOP;
+      const rightUpperWall = new THREE.Mesh(new THREE.PlaneGeometry(RIGHT_SIDE_LEN, rightUpperWallH), wallMat);
+      rightUpperWall.position.set(RIGHT_GLASS_X, RIGHT_GLASS_TOP + rightUpperWallH / 2, WING_Z);
+      rightUpperWall.rotation.y = -Math.PI / 2;
+      floorGroup.add(rightUpperWall);
+
+      // Pared frontal: ahora SÓLIDA Y CONTINUA (sin vano). La entrada ya no
+      // va aquí — se trasladó al muro lateral derecho (ver X azul de referencia).
+      const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, CEILING_Y), wallMat);
+      frontWall.position.set(0, CEILING_Y / 2, ROOM_Z_FRONT);
+      frontWall.rotation.y = Math.PI;
+      floorGroup.add(frontWall);
+
+      const backWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, CEILING_Y), wallMat);
+      backWall.position.set(0, CEILING_Y / 2, ROOM_Z_BACK);
+      floorGroup.add(backWall);
+
+      // ============================================================
+      // PUERTA DE ENTRADA — reubicada (X azul de referencia): del centro del
+      // frente al MURO LATERAL DERECHO, hacia el fondo del edificio (extremo
+      // trasero), justo donde termina la planta baja y arranca la fachada de
+      // cristal. Se abre un vano real en la pared sólida de apoyo del
+      // mezzanine (rightLowerWall), con dintel arriba y marco metálico.
+      // ============================================================
+      const DOOR_W = 4.4, DOOR_H = 8.5;
+      const doorZ = (WING_Z - RIGHT_SIDE_LEN / 2) + DOOR_W / 2 + 2.4; // cerca del extremo trasero del muro derecho
+      const doorZMin = doorZ - DOOR_W / 2, doorZMax = doorZ + DOOR_W / 2;
+      const rightWallZMin = WING_Z - RIGHT_SIDE_LEN / 2, rightWallZMax = WING_Z + RIGHT_SIDE_LEN / 2;
+      const doorSegBackLen = doorZMin - rightWallZMin;
+      const doorSegFrontLen = rightWallZMax - doorZMax;
+      if (doorSegBackLen > 0.1) {
+        const segBack = new THREE.Mesh(new THREE.PlaneGeometry(doorSegBackLen, rightLowerWallH), wallMat);
+        segBack.position.set(RIGHT_GLASS_X, rightLowerWallH / 2, rightWallZMin + doorSegBackLen / 2);
+        segBack.rotation.y = -Math.PI / 2;
+        floorGroup.add(segBack);
+      }
+      if (doorSegFrontLen > 0.1) {
+        const segFront = new THREE.Mesh(new THREE.PlaneGeometry(doorSegFrontLen, rightLowerWallH), wallMat);
+        segFront.position.set(RIGHT_GLASS_X, rightLowerWallH / 2, doorZMax + doorSegFrontLen / 2);
+        segFront.rotation.y = -Math.PI / 2;
+        floorGroup.add(segFront);
+      }
+      const doorLintel = new THREE.Mesh(new THREE.PlaneGeometry(DOOR_W, rightLowerWallH - DOOR_H), wallMat);
+      doorLintel.position.set(RIGHT_GLASS_X, DOOR_H + (rightLowerWallH - DOOR_H) / 2, doorZ);
+      doorLintel.rotation.y = -Math.PI / 2;
+      floorGroup.add(doorLintel);
+      // Marco metálico oscuro alrededor del vano
+      const doorFrameMat = new THREE.MeshStandardMaterial({ color: 0x14161c, metalness: 0.6, roughness: 0.4 });
+      [doorZMin, doorZMax].forEach((z) => {
+        const jamb = new THREE.Mesh(new THREE.BoxGeometry(0.14, DOOR_H, 0.18), doorFrameMat);
+        jamb.position.set(RIGHT_GLASS_X - 0.05, DOOR_H / 2, z);
+        floorGroup.add(jamb);
+      });
+      const doorHeader = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.18, DOOR_W + 0.2), doorFrameMat);
+      doorHeader.position.set(RIGHT_GLASS_X - 0.05, DOOR_H, doorZ);
+      floorGroup.add(doorHeader);
+      // Hoja de puerta de cristal (entreabierta visualmente, tono esmerilado)
+      const doorLeaf = new THREE.Mesh(new THREE.BoxGeometry(0.06, DOOR_H - 0.2, DOOR_W - 0.3), glassMaterial(0x2a3444));
+      doorLeaf.position.set(RIGHT_GLASS_X - 0.08, (DOOR_H - 0.2) / 2, doorZ);
+      floorGroup.add(doorLeaf);
+      const entranceSign = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, DOOR_W + 0.4), neonMaterial(0x1de9b6, 2.4));
+      entranceSign.position.set(RIGHT_GLASS_X - 0.05, DOOR_H + 0.15, doorZ);
+      floorGroup.add(entranceSign);
+
+      // --- Franjas de neón ámbar/púrpura en el techo (marca del club) ---
+      [-FLOOR_D / 2 + 5, FLOOR_D / 2 - 4].forEach(z => {
+        const ceilStrip = new THREE.Mesh(new THREE.BoxGeometry(FLOOR_W + 4, 0.08, 0.08), neonMaterial(0xffb703, 2.6));
+        ceilStrip.position.set(0, CEILING_Y - 1.5, z);
+        floorGroup.add(ceilStrip);
+      });
+      [LEFT_GLASS_X + 1.5, RIGHT_GLASS_X - 1.5].forEach(x => {
+        const sideStrip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, FLOOR_D + 4), neonMaterial(0xa855f7, 2.4));
+        sideStrip.position.set(x, CEILING_Y - 1.5, 4);
+        floorGroup.add(sideStrip);
+      });
+      // Detalle extra: pequeños focos de techo (spots) repartidos, como en un
+      // antro real con cañones de luz apuntando hacia la pista.
+      const spotColors = [0x2ecbff, 0xff2ec4, 0x39ff8a];
+      for (let i = 0; i < (isMobileGPU ? 3 : 5); i++) {
+        const sx = (i - (isMobileGPU ? 1 : 2)) * (FLOOR_W / (isMobileGPU ? 3 : 5));
+        const fixture = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.3, 10), new THREE.MeshStandardMaterial({ color: 0x0c0e13, metalness: 0.6, roughness: 0.4 }));
+        fixture.position.set(sx, CEILING_Y - 0.3, 10);
+        floorGroup.add(fixture);
+        const spot = new THREE.SpotLight(spotColors[i % spotColors.length], isMobileGPU ? 1.6 : 2.4, 26, Math.PI / 7, 0.5, 1.4);
+        spot.position.set(sx, CEILING_Y - 0.4, 10);
+        spot.target.position.set(sx * 0.6, 0, 4);
+        floorGroup.add(spot);
+        floorGroup.add(spot.target);
+      }
+
+      scene.add(floorGroup);
+      buildFurnitureFromLayout();
+
+      clock = new THREE.Clock();
+      lastFrameT = 0;
+      built = true;
+      lastNightState = nightNow;
+    }
+
+    function resize3d() {
+      if (!renderer) return;
+      const w = container.clientWidth, h = container.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / Math.max(h, 1);
+      camera.updateProjectionMatrix();
+    }
+
+    function animate3d() {
+      raf = requestAnimationFrame(animate3d);
+      const t = clock ? clock.getElapsedTime() : 0;
+      const dt = Math.min(t - lastFrameT, 0.05);
+      lastFrameT = t;
+
+      // Movimiento de "caminar" por el lugar con joystick/teclado, suave y a buen fps
+      if (moveState.fwd || moveState.side) {
+        const speed = 14 * dt;
+        cam.target.addScaledVector(camForward(), moveState.fwd * speed);
+        cam.target.addScaledVector(camRight(), moveState.side * speed);
+        updateCameraFromOrbit();
+      }
+
+      // Parpadeo sutil de las luces neón — recorre solo el puñado de luces reales
+      // (guardadas en flickerLights), nunca la escena completa: mucho más barato en tablet.
+      frameCounter++;
+      if (!isMobileGPU || frameCounter % 2 === 0) {
+        for (let i = 0; i < flickerLights.length; i++) {
+          const L = flickerLights[i];
+          const base = L.userData.baseIntensity || L.intensity;
+          L.userData.baseIntensity = base;
+          L.intensity = base * (0.85 + Math.sin(t * 2.2 + i * 1.7) * 0.15);
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // Botón de Modo Edición dentro de la propia vista 3D (la vista 3D tapa el sidebar,
+    // así que necesita su propio control) — comparte el mismo estado que el del sidebar.
+    const btnEditMode3D = document.getElementById('btn-edit-mode-3d');
+    if (btnEditMode3D) {
+      btnEditMode3D.addEventListener('click', () => {
+        window.editModeActive = !window.editModeActive;
+        if (typeof window.syncEditModeUI === 'function') window.syncEditModeUI();
+      });
+    }
+
+    // Ojo para ocultar/mostrar todos los controles flotantes de la vista 3D
+    // (HUD, botón de salir, zoom, joystick, edición) y dejar la pantalla limpia en tablet.
+    const btnToggle3DControls = document.getElementById('btn-toggle-3d-controls');
+    if (btnToggle3DControls) {
+      btnToggle3DControls.addEventListener('click', () => {
+        container.classList.toggle('hide-3d-controls');
+      });
+    }
+
+    window.open3DClub = function () {
+      container.classList.add('open');
+      loadingEl.style.display = 'flex';
+      requestAnimationFrame(() => {
+        // Si cambió de día a noche (o viceversa) desde la última vez que se
+        // abrió la vista 3D, se reconstruye la escena completa para que el
+        // cielo y la iluminación reflejen la hora actual.
+        if (!built || computeIsNight() !== lastNightState) {
+          built = false;
+          buildScene();
+        }
+        if (typeof currentFloor !== 'undefined' && typeof window.club3DSetFloor === 'function') {
+          window.club3DSetFloor(currentFloor);
+        } else {
+          buildFurnitureFromLayout();
+        }
+        resize3d();
+        cancelAnimationFrame(raf);
+        clock && clock.start();
+        lastFrameT = clock ? clock.getElapsedTime() : 0;
+        animate3d();
+        loadingEl.style.display = 'none';
+      });
+    };
+
+    window.close3DClub = function () {
+      container.classList.remove('open');
+      cancelAnimationFrame(raf);
+      moveState.fwd = 0; moveState.side = 0;
+    };
+
+    // Resize con debounce (rAF) — evita reconstruir el tamaño del canvas en cada pixel
+    // mientras el usuario arrastra/redimensiona la ventana, mucho más fluido en tablet.
+    let resizeRafPending = false;
+    window.addEventListener('resize', () => {
+      if (!container.classList.contains('open') || resizeRafPending) return;
+      resizeRafPending = true;
+      requestAnimationFrame(() => {
+        resizeRafPending = false;
+        resize3d();
+      });
+    });
+
+    // Pausa el render loop cuando la pestaña queda oculta (cambio de app, minimizar,
+    // otra ventana) y lo retoma limpio al volver — ahorra batería/GPU y evita el salto
+    // brusco de animación que se siente al regresar tras varios segundos en segundo plano.
+    document.addEventListener('visibilitychange', () => {
+      if (!container.classList.contains('open')) return;
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+      } else {
+        clock && clock.start();
+        lastFrameT = clock ? clock.getElapsedTime() : 0;
+        cancelAnimationFrame(raf);
+        animate3d();
+      }
+    });
+
+    canvasEl3d.addEventListener('contextmenu', (e) => e.preventDefault());
+    canvasEl3d.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    canvasEl3d.addEventListener('touchstart', onPointerDown, { passive: true });
+    canvasEl3d.addEventListener('touchmove', onPointerMove, { passive: true });
+    canvasEl3d.addEventListener('touchend', onPointerUp);
+    canvasEl3d.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+
+    document.getElementById('view3d-zoom-in').onclick = () => { cam.radius -= 4; updateCameraFromOrbit(); };
+    document.getElementById('view3d-zoom-out').onclick = () => { cam.radius += 4; updateCameraFromOrbit(); };
+    document.getElementById('view3d-zoom-reset').onclick = () => { cam.theta = 0.78; cam.phi = 1.08; cam.radius = 30; cam.target.set(0, 6.5, 3); updateCameraFromOrbit(); };
+
+    // --- Joystick táctil para "deslizarse" caminando por el antro (ideal para tableta) ---
+    (function setupJoystick() {
+      const zone = document.getElementById('view3d-joystick');
+      const knob = document.getElementById('view3d-joystick-knob');
+      if (!zone || !knob) return;
+      let active = false, cx = 0, cy = 0;
+      const RADIUS = 34;
+
+      function setKnob(dx, dy) {
+        knob.style.transform = `translate(${dx}px, ${dy}px)`;
+      }
+      function start(e) {
+        active = true;
+        const r = zone.getBoundingClientRect();
+        cx = r.left + r.width / 2; cy = r.top + r.height / 2;
+        move(e);
+      }
+      function move(e) {
+        if (!active) return;
+        const p = e.touches ? e.touches[0] : e;
+        let dx = p.clientX - cx, dy = p.clientY - cy;
+        const dist = Math.hypot(dx, dy);
+        if (dist > RADIUS) { dx = dx / dist * RADIUS; dy = dy / dist * RADIUS; }
+        setKnob(dx, dy);
+        moveState.fwd = -dy / RADIUS;
+        moveState.side = dx / RADIUS;
+      }
+      function end() {
+        active = false; setKnob(0, 0); moveState.fwd = 0; moveState.side = 0;
+      }
+      zone.addEventListener('pointerdown', start);
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', end);
+      zone.addEventListener('touchstart', start, { passive: true });
+      zone.addEventListener('touchmove', move, { passive: true });
+      zone.addEventListener('touchend', end);
+    })();
+  })();
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-SSoIuhjOJDfzudLh1SkD1mNAFNSFQHE",
+      authDomain: "cryptofloor.firebaseapp.com",
+      projectId: "cryptofloor",
+      storageBucket: "cryptofloor.firebasestorage.app",
+      messagingSenderId: "444731213340",
+      appId: "1:444731213340:web:1eba6436521da6772d81d9",
+      measurementId: "G-NXD59V1JYH"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let isRemoteChange = false;
+
+    onSnapshot(doc(db, "crypto_data", "main_config_v4"), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        isRemoteChange = true;
+
+        window.layoutsData = data.layouts || {};
+        window.reservasData = data.reservas || {};
+        window.clientes = data.clientes || [];
+        window.presetsData = data.presets || {};
+
+        if (typeof window.migrarNombresLegacy === 'function') window.migrarNombresLegacy();
+
+        localStorage.setItem(STORAGE_KEY_LAYOUT, JSON.stringify(window.layoutsData));
+        localStorage.setItem(STORAGE_KEY_RESERVAS, JSON.stringify(window.reservasData));
+        localStorage.setItem(STORAGE_KEY_CLI, JSON.stringify(window.clientes));
+        localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(window.presetsData));
+
+        if (typeof window.renderFurniture === 'function') window.renderFurniture();
+        if (typeof window.renderAllCRM === 'function') window.renderAllCRM();
+        if (typeof window.renderPresetsModal === 'function' &&
+            document.getElementById('overlay-presets')?.classList.contains('open')) {
+          window.renderPresetsModal();
+        }
+
+        isRemoteChange = false;
+      } else {
+        window.saveToCloud();
+      }
+    }, (error) => {
+      console.error("Error al escuchar cambios Firebase:", error);
+    });
+
+    window.saveToCloud = async function() {
+      if (isRemoteChange) return;
+
+      try {
+        await setDoc(doc(db, "crypto_data", "main_config_v4"), {
+          layouts: typeof window.layoutsData !== 'undefined' ? window.layoutsData : {},
+          reservas: typeof window.reservasData !== 'undefined' ? window.reservasData : {},
+          clientes: typeof window.clientes !== 'undefined' ? window.clientes : [],
+          presets: typeof window.presetsData !== 'undefined' ? window.presetsData : {}
+        }, { merge: true });
+      } catch (e) {
+        console.error("Error en sincronización Firebase: ", e);
+      }
+    };
+
+    window.savePresetToFirebase = async function(slot, presetData) {
+      try {
+        await setDoc(doc(db, "crypto_data", "main_config_v4"), {
+          presets: { [slot]: presetData }
+        }, { merge: true });
+      } catch (e) {
+        console.error("Error al guardar plantilla en Firebase: ", e);
+      }
+    };
+
+    window.getPresetFromFirebase = async function(slot) {
+      try {
+        const docSnap = await getDoc(doc(db, "crypto_data", "main_config_v4"));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          return (data.presets && data.presets[slot]) || null;
+        }
+        return null;
+      } catch (e) {
+        console.error("Error al obtener plantilla de Firebase: ", e);
+        return null;
+      }
+    };
+  </script>
+</body>
+</html>
