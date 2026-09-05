@@ -1,7 +1,7 @@
 {
   "name": "Crypto Business Social Club",
   "short_name": "Crypto Club",
-  "description": "Aplicación de registro de clientes para Crypto Business Social Club.",
+  "description": "Aplicacion de registro de accesos para Crypto Business Social Club.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",
@@ -9,16 +9,16 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192/09090b/ffffff?text=CRYPTO",
+      "src": "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f48e.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "https://via.placeholder.com/512/09090b/ffffff?text=CRYPTO",
+      "src": "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f48e.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ]
 }
