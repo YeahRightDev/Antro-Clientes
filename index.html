@@ -3,45 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Crypto Business Social Club</title>
+  <title>VIP Access</title>
 
-  <!-- PWA Meta -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0a0a0c">
+  <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
-    :root {
-      --bg: #09090b;
-      --card-bg: #121215;
-      --border: #222228;
-      --border-focus: #444450;
-      --text: #ffffff;
-      --text-muted: #71717a;
-      --accent: #ffffff;
-      --btn-bg: #ffffff;
-      --btn-text: #000000;
-      --error: #ff453a;
-      --success: #30d158;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Space Grotesk', -apple-system, sans-serif;
-      -webkit-tap-highlight-color: transparent;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     body {
-      background-color: var(--bg);
-      color: var(--text);
+      background: #050505;
+      color: #ffffff;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -51,125 +33,115 @@
 
     .card {
       width: 100%;
-      max-width: 400px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 20px;
+      max-width: 380px;
+      background: #111111;
+      border: 1px solid #222222;
+      border-radius: 16px;
       padding: 32px 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     }
 
-    .brand-header {
+    .header {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 28px;
     }
 
-    .brand-logo {
-      width: 180px;
-      height: auto;
-      margin: 0 auto;
-      display: block;
-      filter: invert(1); /* Convierte el logo negro a blanco puro */
+    .header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .header p {
+      font-size: 11px;
+      color: #666666;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
     }
 
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     label {
       display: block;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
+      letter-spacing: 1px;
+      color: #888888;
+      margin-bottom: 6px;
     }
 
     input {
       width: 100%;
-      padding: 16px;
+      padding: 14px;
       background: #000000;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--text);
-      font-size: 16px;
-      font-weight: 500;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      color: #ffffff;
+      font-size: 15px;
       outline: none;
-      transition: all 0.2s ease;
     }
 
     input:focus {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
-    }
-
-    input::placeholder {
-      color: #3f3f46;
+      border-color: #ffffff;
     }
 
     button {
       width: 100%;
       padding: 16px;
-      margin-top: 10px;
-      background: var(--btn-bg);
+      margin-top: 8px;
+      background: #ffffff;
       border: none;
-      border-radius: 12px;
-      color: var(--btn-text);
-      font-size: 15px;
-      font-weight: 700;
+      border-radius: 8px;
+      color: #000000;
+      font-size: 13px;
+      font-weight: 800;
       letter-spacing: 1px;
       text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    button:hover {
-      background: #e4e4e7;
-      transform: translateY(-1px);
     }
 
     button:active {
-      transform: translateY(1px);
-      opacity: 0.9;
+      opacity: 0.8;
     }
 
-    .status-box {
-      margin-top: 20px;
-      min-height: 24px;
+    .status {
+      margin-top: 18px;
       text-align: center;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
     }
 
-    .msg-success { color: var(--success); }
-    .msg-error { color: var(--error); }
-    .msg-saving { color: var(--text-muted); }
+    .ok { color: #30d158; }
+    .err { color: #ff453a; }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <div class="brand-header">
-    <!-- Logotipo Crypto exacto integrado en alta definición -->
-    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 350 250'><path d='M120,25 L230,25 L230,50 L205,75 L205,100 L230,100 L230,125 L120,125 Z M145,50 L145,100 L180,100 L180,75 L155,75 L155,50 Z' fill='%23000'/><path d='M120,35 L120,115 L220,115 L220,105 L130,105 L130,45 L220,45 L220,35 Z' fill='%23000' transform='rotate(180 170 75)'/><text x='175' y='180' font-family='Arial Black, sans-serif' font-size='38' font-weight='900' letter-spacing='6' text-anchor='middle' fill='%23000'>CRYPTO</text><text x='175' y='205' font-family='Arial, sans-serif' font-size='11' font-weight='bold' letter-spacing='4' text-anchor='middle' fill='%23000'>BUSINESS SOCIAL CLUB</text></svg>" alt="Crypto Club" class="brand-logo">
+  <div class="header">
+    <h1>REGISTRO VIP</h1>
+    <p>A c c e s o s</p>
   </div>
 
   <form id="clienteForm">
     <div class="form-group">
       <label for="nombre">Nombre Completo</label>
-      <input type="text" id="nombre" placeholder="Ej. Carlos López" required autocomplete="off" spellcheck="false">
+      <input type="text" id="nombre" placeholder="Nombre y Apellido" required autocomplete="off">
     </div>
 
     <div class="form-group">
-      <label for="telefono">Teléfono / WhatsApp</label>
-      <input type="tel" id="telefono" placeholder="4491234567" maxlength="10" required autocomplete="off">
+      <label for="telefono">Teléfono</label>
+      <input type="tel" id="telefono" placeholder="10 dígitos" maxlength="10" required autocomplete="off">
     </div>
 
-    <button type="submit" id="btnGuardar">Registrar Cliente ➔</button>
+    <button type="submit" id="btnGuardar">Guardar Registro ➔</button>
   </form>
 
-  <div class="status-box" id="statusBox"></div>
+  <div class="status" id="status"></div>
 </div>
 
 <script type="module">
@@ -189,54 +161,44 @@
   const db = getFirestore(app);
 
   const form = document.getElementById("clienteForm");
-  const nombreInput = document.getElementById("nombre");
-  const telefonoInput = document.getElementById("telefono");
-  const statusBox = document.getElementById("statusBox");
+  const status = document.getElementById("status");
   const btn = document.getElementById("btnGuardar");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const nombre = document.getElementById("nombre").value.trim();
+    let num = document.getElementById("telefono").value.replace(/\D/g, '');
 
-    const nombre = nombreInput.value.trim();
-    let numLimpio = telefonoInput.value.replace(/\D/g, '');
-
-    if (numLimpio.length !== 10) {
-      statusBox.innerHTML = `<span class="msg-error">⚠️ Ingresa 10 dígitos válidos</span>`;
+    if (num.length !== 10) {
+      status.innerHTML = `<span class="err">Teléfono debe tener 10 dígitos</span>`;
       return;
     }
 
-    const telefonoFormateado = `+52${numLimpio}`;
+    const tel = `+52${num}`;
     btn.disabled = true;
-    btn.style.opacity = "0.5";
-    statusBox.innerHTML = `<span class="msg-saving">Guardando...</span>`;
+    status.innerHTML = `Guardando...`;
 
     try {
-      await setDoc(doc(db, "clientes", telefonoFormateado), {
+      await setDoc(doc(db, "clientes", tel), {
         nombre: nombre,
-        telefono: telefonoFormateado,
+        telefono: tel,
         estadoSuscripcion: "ACTIVO",
         estadoUltimoEnvio: "PENDIENTE",
         fechaRegistro: serverTimestamp()
       }, { merge: true });
 
-      statusBox.innerHTML = `<span class="msg-success">✓ Registrado: ${nombre}</span>`;
-
+      status.innerHTML = `<span class="ok">✓ Registrado: ${nombre}</span>`;
       form.reset();
-      nombreInput.focus();
-
+      document.getElementById("nombre").focus();
     } catch (err) {
-      console.error(err);
-      statusBox.innerHTML = `<span class="msg-error">❌ Error de conexión</span>`;
+      status.innerHTML = `<span class="err">❌ Error al guardar</span>`;
     } finally {
       btn.disabled = false;
-      btn.style.opacity = "1";
     }
   });
 
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
-    });
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
   }
 </script>
 
