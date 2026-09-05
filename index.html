@@ -29,6 +29,39 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
+      position: relative;
+    }
+
+    /* Botón flotante para pantalla completa */
+    .btn-fullscreen {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #111111;
+      border: 1px solid #222222;
+      color: #888888;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .btn-fullscreen:hover {
+      background: #222222;
+      color: #ffffff;
+      border-color: #444444;
+    }
+
+    .btn-fullscreen:active {
+      transform: scale(0.95);
     }
 
     .card {
@@ -89,7 +122,7 @@
       border-color: #ffffff;
     }
 
-    button {
+    button[type="submit"] {
       width: 100%;
       padding: 16px;
       margin-top: 8px;
@@ -104,7 +137,7 @@
       cursor: pointer;
     }
 
-    button:active {
+    button[type="submit"]:active {
       opacity: 0.8;
     }
 
@@ -120,6 +153,11 @@
   </style>
 </head>
 <body>
+
+<!-- Botón de Pantalla Completa -->
+<button type="button" class="btn-fullscreen" id="btnFullscreen">
+  <span id="fsIcon">⛶</span> <span id="fsText">Pantalla Completa</span>
+</button>
 
 <div class="card">
   <div class="header">
@@ -163,6 +201,34 @@
   const form = document.getElementById("clienteForm");
   const status = document.getElementById("status");
   const btn = document.getElementById("btnGuardar");
+
+  // Lógica de Pantalla Completa
+  const btnFullscreen = document.getElementById("btnFullscreen");
+  const fsText = document.getElementById("fsText");
+
+  btnFullscreen.addEventListener("click", () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        fsText.textContent = "Salir";
+      }).catch(err => {
+        console.log("Error al activar pantalla completa:", err);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().then(() => {
+          fsText.textContent = "Pantalla Completa";
+        });
+      }
+    }
+  });
+
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+      fsText.textContent = "Pantalla Completa";
+    } else {
+      fsText.textContent = "Salir";
+    }
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
