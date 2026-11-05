@@ -166,9 +166,6 @@
     <label class="text-[11px] text-slate-400 font-semibold block mb-1 uppercase tracking-wider">Cantidad de Personas (PAX) *</label>
     <input id="inPax" type="number" class="field-input mb-3" placeholder="Ej. 6" min="1" max="99" required>
 
-    <label class="text-[11px] text-slate-400 font-semibold block mb-1 uppercase tracking-wider">Teléfono (Opcional)</label>
-    <input id="inTelefono" type="tel" class="field-input mb-3" placeholder="Ej. 5512345678" autocomplete="tel">
-
     <label class="text-[11px] text-slate-400 font-semibold block mb-1 uppercase tracking-wider">RP / Promotor (Opcional)</label>
     <input id="inRp" type="text" class="field-input mb-6" placeholder="Ej. Alex" autocomplete="off">
 
@@ -253,18 +250,6 @@ function render() {
           ${r.rp ? `<span class="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-slate-400 font-medium">${r.rp}</span>` : ''}
         </div>
         <p class="text-xs text-slate-400 font-medium mt-0.5">${r.pax} Personas</p>
-        
-        ${r.telefono ? `
-          <div class="flex gap-2 mt-2">
-            <a href="tel:${r.telefono}" class="text-[10px] flex items-center gap-1.5 text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-md border border-emerald-400/20 hover:bg-emerald-400/20 transition-colors">
-              📞 Llamar
-            </a>
-            <a href="https://wa.me/${r.telefono.replace(/\D/g, '')}" target="_blank" class="text-[10px] flex items-center gap-1.5 text-green-400 bg-green-400/10 px-2.5 py-1 rounded-md border border-green-400/20 hover:bg-green-400/20 transition-colors">
-              💬 WhatsApp
-            </a>
-            <span class="text-[10px] text-slate-500 flex items-center px-1">${r.telefono}</span>
-          </div>
-        ` : ''}
       </div>
 
       <div class="flex items-center gap-2">
@@ -299,7 +284,6 @@ $('formNew').addEventListener('submit', async e => {
   const nombre = $('inNombre').value.trim();
   const pax = parseInt($('inPax').value, 10);
   const rp = $('inRp').value.trim();
-  const telefono = $('inTelefono').value.trim();
 
   if (!nombre || !pax) return;
 
@@ -307,7 +291,6 @@ $('formNew').addEventListener('submit', async e => {
     nombre,
     pax,
     rp,
-    telefono,
     llegado: false,
     creado: serverTimestamp()
   });
