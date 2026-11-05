@@ -1,1 +1,8 @@
-
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.plano_crypto.twa",
+        "sha256_cert_fingerprints": ["11:CA:E3:2D:98:40:D2:A8:8D:13:35:0B:7A:5D:FA:D5:8C:F4:81:EA:CE:89:97:20:89:68:39:E6:73:8D:9F:5F"]
+      }
+    }]
