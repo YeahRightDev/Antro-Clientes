@@ -1,272 +1,373 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>VIP Access</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>VIP Access</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#120a1f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#120a1f; --panel:#1c1130; --line:#33224f; --txt:#f6f1ff; --mut:#a193c2;
+  --pink:#ff3d8b; --gold:#ffc857; --ok:#3ddc97; --err:#ff5d6c;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Sora',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:radial-gradient(900px 500px at 85% -10%,rgba(255,61,139,.22),transparent 60%),
+             radial-gradient(700px 500px at -10% 110%,rgba(255,200,87,.12),transparent 60%),var(--bg);
+  color:var(--txt);overflow-x:hidden;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+button{cursor:pointer;border:none;color:inherit;background:none;font-size:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+/* Barra superior */
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:rgba(18,10,31,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.brand{flex:1;font-weight:800;font-size:19px;letter-spacing:.5px}
+.brand span{background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand small{display:block;font-size:11px;font-weight:400;color:var(--mut);letter-spacing:0}
+.burger{width:44px;height:44px;border-radius:12px;background:var(--panel);border:1px solid var(--line);
+  display:grid;place-content:center;gap:5px;transition:transform .2s}
+.burger:active{transform:scale(.92)}
+.burger i{display:block;width:20px;height:2px;background:var(--txt);border-radius:2px;transition:.25s}
+.burger.open i:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.burger.open i:nth-child(2){opacity:0}
+.burger.open i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+/* Menú lateral */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.scrim.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(300px,82vw);background:var(--panel);border-left:1px solid var(--line);
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:50;padding:calc(env(safe-area-inset-top) + 20px) 14px 20px;display:flex;flex-direction:column;gap:6px}
+.drawer.show{transform:none}
+.drawer h2{font-size:13px;color:var(--mut);font-weight:600;padding:0 10px 10px}
+.mi{display:flex;align-items:center;gap:14px;padding:14px 12px;border-radius:12px;font-size:15px;font-weight:600;text-align:left;width:100%;transition:background .15s}
+.mi:hover,.mi.active{background:rgba(255,61,139,.14)}
+.mi .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--bg);font-size:17px}
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', system-ui, sans-serif;
-    }
+main{max-width:520px;margin:0 auto;padding:20px 16px 120px}
+.view{display:none}
+.view.show{display:block;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
-    body {
-      background: #050505;
-      color: #ffffff;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      position: relative;
-    }
+/* Registro */
+.hero{margin:10px 0 24px}
+.hero h1{font-size:30px;line-height:1.1;font-weight:800}
+.hero p{color:var(--mut);font-size:14px;margin-top:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px 18px}
+.fg{margin-bottom:16px}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:7px;font-weight:600}
+input[type=text],input[type=tel],input[type=search]{width:100%;padding:15px 14px;background:var(--bg);border:1px solid var(--line);border-radius:12px;color:var(--txt);font-size:16px;outline:none;transition:border .2s,box-shadow .2s}
+input:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,61,139,.2)}
+.btn{width:100%;padding:16px;border-radius:12px;font-weight:800;font-size:15px;background:linear-gradient(90deg,var(--pink),#ff7a59);color:#fff;transition:transform .15s,opacity .15s}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5}
+.status{margin-top:14px;text-align:center;font-size:13px;font-weight:600;min-height:18px}
+.ok{color:var(--ok)}.err{color:var(--err)}
 
-    /* Botón flotante para pantalla completa */
-    .btn-fullscreen {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: #111111;
-      border: 1px solid #222222;
-      color: #888888;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-      z-index: 100;
-    }
+/* Contactos */
+.bar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.bar input{flex:1}
+.count{font-size:12px;color:var(--mut);margin:0 2px 12px}
+.list{display:flex;flex-direction:column;gap:10px}
+.c{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;transition:border .2s,background .2s}
+.c.sel{border-color:var(--gold);background:rgba(255,200,87,.08)}
+.av{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--pink),var(--gold));color:#2a0f2e}
+.info{flex:1;min-width:0}
+.info b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info span{font-size:13px;color:var(--mut)}
+.acts{display:flex;gap:6px}
+.ib{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line);font-size:17px;transition:transform .15s}
+.ib:active{transform:scale(.9)}
+.ib.wa{background:#1fa855;border-color:#1fa855;color:#fff}
+.chk{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex:none;display:none;place-items:center;font-size:15px;color:#2a0f2e}
+.selmode .chk{display:grid}.selmode .acts{display:none}
+.c.sel .chk{background:var(--gold);border-color:var(--gold)}
+.empty{text-align:center;color:var(--mut);padding:50px 10px;font-size:14px}
 
-    .btn-fullscreen:hover {
-      background: #222222;
-      color: #ffffff;
-      border-color: #444444;
-    }
+/* Barra de selección */
+.selbar{position:fixed;left:0;right:0;bottom:0;z-index:35;padding:12px 16px calc(env(safe-area-inset-bottom) + 12px);background:rgba(28,17,48,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  transform:translateY(110%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.selbar.show{transform:none}
+.selbar .in{max-width:520px;margin:0 auto}
+.selbar .t{font-size:13px;color:var(--mut);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.selbar .t button{color:var(--gold);font-weight:600;font-size:13px}
+.row{display:flex;gap:8px}
+.row .btn{padding:13px 8px;font-size:13px}
+.btn.alt{background:var(--bg);border:1px solid var(--line)}
 
-    .btn-fullscreen:active {
-      transform: scale(0.95);
-    }
+/* Editar */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--panel);border-radius:24px 24px 0 0;border-top:1px solid var(--line);padding:22px 18px calc(env(safe-area-inset-bottom) + 22px);
+  transform:translateY(110%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.sheet.show{transform:none}
+.sheet .in{max-width:520px;margin:0 auto}
+.sheet h3{font-size:18px;margin-bottom:16px}
 
-    .card {
-      width: 100%;
-      max-width: 380px;
-      background: #111111;
-      border: 1px solid #222222;
-      border-radius: 16px;
-      padding: 32px 24px;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
-    .header h1 {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    .header p {
-      font-size: 11px;
-      color: #666666;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    label {
-      display: block;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #888888;
-      margin-bottom: 6px;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      background: #000000;
-      border: 1px solid #262626;
-      border-radius: 8px;
-      color: #ffffff;
-      font-size: 15px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: #ffffff;
-    }
-
-    button[type="submit"] {
-      width: 100%;
-      padding: 16px;
-      margin-top: 8px;
-      background: #ffffff;
-      border: none;
-      border-radius: 8px;
-      color: #000000;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-    }
-
-    button[type="submit"]:active {
-      opacity: 0.8;
-    }
-
-    .status {
-      margin-top: 18px;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .ok { color: #30d158; }
-    .err { color: #ff453a; }
-  </style>
+.toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:var(--txt);color:#1a0f2b;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:80;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
 
-<!-- Botón de Pantalla Completa -->
-<button type="button" class="btn-fullscreen" id="btnFullscreen">
-  <span id="fsIcon">⛶</span> <span id="fsText">Pantalla Completa</span>
-</button>
+<header class="top">
+  <div class="brand"><span>VIP Access</span><small>Crypto</small></div>
+  <button class="burger" id="burger" aria-label="Abrir menú"><i></i><i></i><i></i></button>
+</header>
 
-<div class="card">
-  <div class="header">
-    <h1>REGISTRO DE CLIENTE</h1>
-    <p>CRYPTO</p>
+<div class="scrim" id="scrim"></div>
+<nav class="drawer" id="drawer">
+  <h2>Menú</h2>
+  <button class="mi active" data-go="registro"><span class="ic">✚</span>Registrar cliente</button>
+  <button class="mi" data-go="contactos"><span class="ic">☰</span>Administrar contactos</button>
+  <button class="mi" id="miSel"><span class="ic">✔</span>Seleccionar y exportar</button>
+  <button class="mi" id="miFs"><span class="ic">⛶</span><span id="fsText">Pantalla completa</span></button>
+</nav>
+
+<main>
+  <!-- Registro -->
+  <section class="view show" id="v-registro">
+    <div class="hero">
+      <h1>Nuevo cliente</h1>
+      <p>Regístralo en segundos. Se guarda al instante en la lista.</p>
+    </div>
+    <div class="card">
+      <form id="clienteForm">
+        <div class="fg"><label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre" placeholder="Nombre y apellido" required autocomplete="off"></div>
+        <div class="fg"><label for="telefono">Teléfono</label>
+          <input type="tel" id="telefono" placeholder="10 dígitos" maxlength="10" inputmode="numeric" required autocomplete="off"></div>
+        <button type="submit" class="btn" id="btnGuardar">Guardar cliente</button>
+      </form>
+      <div class="status" id="status"></div>
+    </div>
+  </section>
+
+  <!-- Contactos -->
+  <section class="view" id="v-contactos">
+    <div class="hero"><h1>Contactos</h1></div>
+    <div class="bar"><input type="search" id="buscar" placeholder="Buscar por nombre o teléfono"></div>
+    <div class="count" id="count"></div>
+    <div class="list" id="list"></div>
+  </section>
+</main>
+
+<!-- Barra de selección -->
+<div class="selbar" id="selbar"><div class="in">
+  <div class="t"><span id="selCount">0 seleccionados</span><button id="selAll">Seleccionar todos</button></div>
+  <div class="row">
+    <button class="btn" id="expVcf">Guardar en contactos</button>
+    <button class="btn alt" id="expCsv">CSV</button>
+    <button class="btn alt" id="selCancel">Cancelar</button>
   </div>
+</div></div>
 
-  <form id="clienteForm">
-    <div class="form-group">
-      <label for="nombre">Nombre Completo</label>
-      <input type="text" id="nombre" placeholder="Nombre y Apellido" required autocomplete="off">
-    </div>
+<!-- Editar -->
+<div class="sheet" id="sheet"><div class="in">
+  <h3>Editar contacto</h3>
+  <div class="fg"><label for="eNombre">Nombre completo</label><input type="text" id="eNombre" autocomplete="off"></div>
+  <div class="fg"><label for="eTel">Teléfono</label><input type="tel" id="eTel" maxlength="10" inputmode="numeric" autocomplete="off"></div>
+  <div class="row"><button class="btn alt" id="eCancel">Cancelar</button><button class="btn" id="eSave">Guardar cambios</button></div>
+</div></div>
 
-    <div class="form-group">
-      <label for="telefono">Teléfono</label>
-      <input type="tel" id="telefono" placeholder="10 dígitos" maxlength="10" required autocomplete="off">
-    </div>
-
-    <button type="submit" id="btnGuardar">Guardar Registro ➔</button>
-  </form>
-
-  <div class="status" id="status"></div>
-</div>
+<div class="toast" id="toast"></div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, setDoc, deleteDoc, updateDoc, writeBatch, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyA5nN5tRexqV9gdjvSDnq4LtmbFw4qMsr8",
-    authDomain: "antro-clientes.firebaseapp.com",
-    projectId: "antro-clientes",
-    storageBucket: "antro-clientes.firebasestorage.app",
-    messagingSenderId: "678602169342",
-    appId: "1:678602169342:web:4ac3083d404e214424beaf"
-  };
+const app = initializeApp({
+  apiKey: "AIzaSyA5nN5tRexqV9gdjvSDnq4LtmbFw4qMsr8",
+  authDomain: "antro-clientes.firebaseapp.com",
+  projectId: "antro-clientes",
+  storageBucket: "antro-clientes.firebasestorage.app",
+  messagingSenderId: "678602169342",
+  appId: "1:678602169342:web:4ac3083d404e214424beaf"
+});
+const db = getFirestore(app);
+const $ = id => document.getElementById(id);
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+let clientes = [];          // [{id, nombre, telefono, ...}]
+let selMode = false;
+const selected = new Set();
+let editingId = null;
 
-  const form = document.getElementById("clienteForm");
-  const status = document.getElementById("status");
-  const btn = document.getElementById("btnGuardar");
+/* ---------- Utilidades ---------- */
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2400)}
+const digits = s => (s||"").replace(/\D/g,"");
+const local10 = tel => digits(tel).slice(-10);
+const fmt = tel => { const d=local10(tel); return d.length===10 ? `${d.slice(0,3)} ${d.slice(3,6)} ${d.slice(6)}` : tel };
+const initials = n => (n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+function download(name, text, type){
+  const blob = new Blob([text],{type});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
 
-  // Lógica de Pantalla Completa
-  const btnFullscreen = document.getElementById("btnFullscreen");
-  const fsText = document.getElementById("fsText");
+/* ---------- Menú y vistas ---------- */
+function menu(open){
+  $("drawer").classList.toggle("show",open);
+  $("scrim").classList.toggle("show",open);
+  $("burger").classList.toggle("open",open);
+}
+$("burger").onclick = () => menu(!$("drawer").classList.contains("show"));
+$("scrim").onclick = () => menu(false);
 
-  btnFullscreen.addEventListener("click", () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().then(() => {
-        fsText.textContent = "Salir";
-      }).catch(err => {
-        console.log("Error al activar pantalla completa:", err);
-      });
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().then(() => {
-          fsText.textContent = "Pantalla Completa";
-        });
-      }
-    }
+function go(view){
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("show",v.id==="v-"+view));
+  document.querySelectorAll(".mi[data-go]").forEach(m=>m.classList.toggle("active",m.dataset.go===view));
+  if(view!=="contactos") setSel(false);
+  window.scrollTo({top:0});
+}
+document.querySelectorAll(".mi[data-go]").forEach(b=>b.onclick=()=>{go(b.dataset.go);menu(false)});
+$("miSel").onclick = () => {go("contactos");setSel(true);menu(false)};
+
+/* Pantalla completa */
+$("miFs").onclick = () => {
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(()=>toast("Tu navegador no permite pantalla completa"));
+  else document.exitFullscreen?.();
+  menu(false);
+};
+document.addEventListener("fullscreenchange",()=>{$("fsText").textContent=document.fullscreenElement?"Salir de pantalla completa":"Pantalla completa"});
+
+/* ---------- Registro ---------- */
+$("clienteForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const nombre = $("nombre").value.trim();
+  const num = digits($("telefono").value);
+  const status = $("status"), btn = $("btnGuardar");
+  if(num.length!==10){status.innerHTML='<span class="err">El teléfono debe tener 10 dígitos</span>';return}
+  const tel = `+52${num}`;
+  btn.disabled = true; status.textContent = "Guardando...";
+  try{
+    await setDoc(doc(db,"clientes",tel),{nombre,telefono:tel,estadoSuscripcion:"ACTIVO",estadoUltimoEnvio:"PENDIENTE",fechaRegistro:serverTimestamp()},{merge:true});
+    status.innerHTML = '<span class="ok"></span>'; status.firstChild.textContent = "✓ Registrado: "+nombre;
+    $("clienteForm").reset(); $("nombre").focus();
+  }catch(err){status.innerHTML='<span class="err">No se pudo guardar. Revisa tu conexión.</span>'}
+  finally{btn.disabled=false}
+});
+
+/* ---------- Lista de contactos (tiempo real) ---------- */
+onSnapshot(collection(db,"clientes"), snap=>{
+  clientes = snap.docs.map(d=>({id:d.id,...d.data()}));
+  clientes.sort((a,b)=>(b.fechaRegistro?.seconds??9e9)-(a.fechaRegistro?.seconds??9e9));
+  [...selected].forEach(id=>{if(!clientes.some(c=>c.id===id))selected.delete(id)});
+  render();
+}, ()=>toast("Error al cargar contactos"));
+
+$("buscar").oninput = render;
+
+function render(){
+  const q = $("buscar").value.trim().toLowerCase();
+  const qd = digits(q);
+  const rows = clientes.filter(c=>!q || (c.nombre||"").toLowerCase().includes(q) || (qd && digits(c.telefono).includes(qd)));
+  $("count").textContent = `${rows.length} de ${clientes.length} contactos`;
+  const list = $("list"); list.textContent = "";
+  list.classList.toggle("selmode",selMode);
+  if(!rows.length){const e=document.createElement("div");e.className="empty";e.textContent=clientes.length?"Sin resultados para tu búsqueda.":"Aún no hay clientes. Registra el primero desde el menú.";list.appendChild(e)}
+  rows.forEach(c=>{
+    const el = document.createElement("div");
+    el.className = "c"+(selected.has(c.id)?" sel":"");
+    const av=document.createElement("div");av.className="av";av.textContent=initials(c.nombre);
+    const info=document.createElement("div");info.className="info";
+    const b=document.createElement("b");b.textContent=c.nombre||"Sin nombre";
+    const s=document.createElement("span");s.textContent=fmt(c.telefono);
+    info.append(b,s);
+    const chk=document.createElement("div");chk.className="chk";chk.textContent=selected.has(c.id)?"✓":"";
+    const acts=document.createElement("div");acts.className="acts";
+    acts.append(
+      btnIcon("💬","wa","Enviar WhatsApp",()=>window.open(`https://wa.me/52${local10(c.telefono)}`,"_blank")),
+      btnIcon("✎","","Editar",()=>openEdit(c)),
+      btnIcon("🗑","","Eliminar",()=>remove(c))
+    );
+    el.append(av,info,acts,chk);
+    el.onclick = ()=>{ if(selMode) toggle(c.id) };
+    list.appendChild(el);
   });
+  updateBar();
+}
+function btnIcon(txt,cls,label,fn){
+  const b=document.createElement("button");b.className="ib "+cls;b.textContent=txt;b.setAttribute("aria-label",label);
+  b.onclick=e=>{e.stopPropagation();fn()};return b;
+}
 
-  document.addEventListener("fullscreenchange", () => {
-    if (!document.fullscreenElement) {
-      fsText.textContent = "Pantalla Completa";
-    } else {
-      fsText.textContent = "Salir";
+/* ---------- Editar / eliminar ---------- */
+function openEdit(c){
+  editingId = c.id;
+  $("eNombre").value = c.nombre||""; $("eTel").value = local10(c.telefono);
+  $("sheet").classList.add("show"); $("scrim").classList.add("show");
+}
+function closeEdit(){ $("sheet").classList.remove("show"); if(!$("drawer").classList.contains("show")) $("scrim").classList.remove("show"); editingId=null }
+$("eCancel").onclick = closeEdit;
+$("scrim").addEventListener("click",closeEdit);
+
+$("eSave").onclick = async ()=>{
+  const nombre = $("eNombre").value.trim(), num = digits($("eTel").value);
+  if(!nombre) return toast("Escribe un nombre");
+  if(num.length!==10) return toast("El teléfono debe tener 10 dígitos");
+  const old = clientes.find(c=>c.id===editingId); if(!old) return;
+  const newId = `+52${num}`;
+  try{
+    if(newId===old.id){
+      await updateDoc(doc(db,"clientes",old.id),{nombre});
+    }else{
+      if(clientes.some(c=>c.id===newId)) return toast("Ese teléfono ya está registrado");
+      const {id,...data} = old;
+      const batch = writeBatch(db);
+      batch.set(doc(db,"clientes",newId),{...data,nombre,telefono:newId});
+      batch.delete(doc(db,"clientes",old.id));
+      await batch.commit();
     }
-  });
+    closeEdit(); toast("Cambios guardados");
+  }catch(err){toast("No se pudo guardar")}
+};
+async function remove(c){
+  if(!confirm(`¿Eliminar a ${c.nombre||fmt(c.telefono)}?`)) return;
+  try{await deleteDoc(doc(db,"clientes",c.id));toast("Contacto eliminado")}catch(e){toast("No se pudo eliminar")}
+}
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const nombre = document.getElementById("nombre").value.trim();
-    let num = document.getElementById("telefono").value.replace(/\D/g, '');
+/* ---------- Selección y exportación ---------- */
+function setSel(on){selMode=on;if(!on)selected.clear();render()}
+function toggle(id){selected.has(id)?selected.delete(id):selected.add(id);render()}
+function updateBar(){
+  $("selbar").classList.toggle("show",selMode);
+  $("selCount").textContent = `${selected.size} seleccionado${selected.size===1?"":"s"}`;
+}
+$("selCancel").onclick = ()=>setSel(false);
+$("selAll").onclick = ()=>{
+  const q=$("buscar").value.trim().toLowerCase(), qd=digits(q);
+  const vis = clientes.filter(c=>!q||(c.nombre||"").toLowerCase().includes(q)||(qd&&digits(c.telefono).includes(qd)));
+  const all = vis.every(c=>selected.has(c.id));
+  vis.forEach(c=>all?selected.delete(c.id):selected.add(c.id)); render();
+};
+const chosen = () => clientes.filter(c=>selected.has(c.id));
 
-    if (num.length !== 10) {
-      status.innerHTML = `<span class="err">Teléfono debe tener 10 dígitos</span>`;
-      return;
-    }
-
-    const tel = `+52${num}`;
-    btn.disabled = true;
-    status.innerHTML = `Guardando...`;
-
-    try {
-      await setDoc(doc(db, "clientes", tel), {
-        nombre: nombre,
-        telefono: tel,
-        estadoSuscripcion: "ACTIVO",
-        estadoUltimoEnvio: "PENDIENTE",
-        fechaRegistro: serverTimestamp()
-      }, { merge: true });
-
-      status.innerHTML = `<span class="ok">✓ Registrado: ${nombre}</span>`;
-      form.reset();
-      document.getElementById("nombre").focus();
-    } catch (err) {
-      status.innerHTML = `<span class="err">❌ Error al guardar</span>`;
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+$("expVcf").onclick = async ()=>{
+  const list = chosen(); if(!list.length) return toast("Selecciona al menos un contacto");
+  const esc = s => (s||"").replace(/([,;\\])/g,"\\$1").replace(/\n/g," ");
+  const vcf = list.map(c=>`BEGIN:VCARD\r\nVERSION:3.0\r\nFN:${esc(c.nombre)}\r\nTEL;TYPE=CELL:${c.telefono}\r\nORG:Crypto\r\nEND:VCARD`).join("\r\n")+"\r\n";
+  const file = new File([vcf],"contactos-crypto.vcf",{type:"text/vcard"});
+  if(navigator.canShare?.({files:[file]})){
+    try{await navigator.share({files:[file],title:"Contactos Crypto"});return}catch(e){if(e.name==="AbortError")return}
   }
-</script>
+  download("contactos-crypto.vcf",vcf,"text/vcard"); toast("Abre el archivo .vcf para agregarlos a tu agenda");
+};
+$("expCsv").onclick = ()=>{
+  const list = chosen(); if(!list.length) return toast("Selecciona al menos un contacto");
+  const q = s => `"${(s||"").replace(/"/g,'""')}"`;
+  const csv = "\ufeffNombre,Teléfono\r\n"+list.map(c=>`${q(c.nombre)},${q(c.telefono)}`).join("\r\n");
+  download("contactos-crypto.csv",csv,"text/csv;charset=utf-8"); toast("CSV descargado");
+};
 
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'))}
+</script>
 </body>
 </html>
